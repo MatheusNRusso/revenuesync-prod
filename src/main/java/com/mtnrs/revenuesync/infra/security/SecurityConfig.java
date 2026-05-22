@@ -35,8 +35,6 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/webhooks/**", "/mock/**").permitAll()
                         .requestMatchers("/api/solana/transaction-request/**").permitAll()
                         .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/validate").authenticated()

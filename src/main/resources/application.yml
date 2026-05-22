@@ -29,10 +29,6 @@ api:
       secret: ${JWT_SECRET}
       expiration-ms: 3600000
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui/index.html
-
 admin:
   email: ${ADMIN_EMAIL}
   password: ${ADMIN_PASSWORD}
