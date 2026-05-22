@@ -1,0 +1,1 @@
+ALTER TABLE merchants ADD COLUMN default_amount_sol NUMERIC(19, 9);

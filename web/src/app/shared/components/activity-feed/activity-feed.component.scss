@@ -1,0 +1,116 @@
+/*
+ * Activity Feed Component Styles
+ * Part of the RevenueSync Design System
+ *
+ * This stylesheet defines the visual appearance of the Activity Feed component,
+ * including layout, typography, colors, and responsive behavior.
+ *  It uses CSS variables for theming and is designed to be consistent with the overall design system.
+ *
+/* ============================================================
+   ACTIVITY FEED — RevenueSync Design System
+   ============================================================ */
+
+.activity-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  margin-bottom: 1rem;
+  transition: border-color 200ms ease;
+
+  &:hover { border-color: var(--border-default); }
+}
+
+.activity-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h3 {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+
+  .activity-count {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    background: var(--bg-overlay);
+    border: 1px solid var(--border-subtle);
+    padding: 0.2rem 0.5rem;
+    border-radius: 100px;
+  }
+}
+
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-item {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 150ms ease;
+  cursor: default;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover { background: var(--bg-overlay); }
+
+  .badge {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.55rem;
+    min-width: 75px;
+    justify-content: center;
+  }
+
+  .activity-email {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .activity-time {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+}
+
+.activity-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .activity-item {
+    grid-template-columns: 75px 1fr;
+    grid-template-rows: auto auto;
+
+    .activity-time {
+      grid-column: 2;
+      font-size: 0.65rem;
+    }
+  }
+}

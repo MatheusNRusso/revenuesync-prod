@@ -1,0 +1,244 @@
+<div class="app" [class.light]="!isDark">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-mark"></div>
+      <span>revenue<b>Sync</b></span>
+    </div>
+
+    <div class="sidebar-section">/ navigate</div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" [class.active]="isActive('/dashboard')" (click)="goTo('/dashboard')">
+        <span>Dashboard</span>
+      </a>
+
+      <a class="sidebar-link" [class.active]="isActive('/admin/merchants')" (click)="goTo('/admin/merchants')">
+        <span>Merchants</span>
+        <span class="badge">{{ totalMerchants }}</span>
+      </a>
+
+      <a class="sidebar-link" [class.active]="isActive('/admin/payments')" (click)="goTo('/admin/payments')">
+        <span>Payments</span>
+        <span class="badge">{{ totalPayments }}</span>
+      </a>
+
+      <a class="sidebar-link" [class.active]="isActive('/admin/conversions')" (click)="goTo('/admin/conversions')">
+        <span>Conversions</span>
+      </a>
+
+      <a class="sidebar-link" [class.active]="isActive('/admin/leads')" (click)="goTo('/admin/leads')">
+        <span>Leads</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+  </aside>
+
+  <div class="content">
+
+    <header class="topbar">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span><span class="accent-text">LIVE</span> · auto-refresh 10s</span>
+      </div>
+
+      <div class="topbar-right">
+        <span class="role-badge"><span class="dot"></span> Admin</span>
+
+        <button class="tb-btn" (click)="goTo('/discover')">Discover</button>
+        <button class="tb-btn" (click)="goTo('/buyer/history')">My Purchases</button>
+
+        <button class="tb-btn primary" (click)="loadDashboard()">Refresh</button>
+      </div>
+    </header>
+
+    <main class="main">
+
+      @if (error) {
+        <div class="state-box error-state">{{ error }}</div>
+      }
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label"><span class="tag">[01]</span> Total Payments</div>
+          <div class="kpi-value">{{ totalPayments }}</div>
+          <div class="kpi-foot">all time</div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-label"><span class="status-dot green"></span><span class="tag">[02]</span> Succeeded</div>
+          <div class="kpi-value">{{ succeededCount }}</div>
+          <div class="kpi-foot">{{ successRate }} success rate</div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-label"><span class="status-dot amber"></span><span class="tag">[03]</span> Pending</div>
+          <div class="kpi-value">{{ pendingCount }}</div>
+          <div class="kpi-foot">awaiting confirmation</div>
+        </div>
+
+        <div class="kpi">
+          <div class="kpi-label"><span class="status-dot red"></span><span class="tag">[04]</span> Failed</div>
+          <div class="kpi-value">{{ failedCount }}</div>
+          <div class="kpi-foot">requires review</div>
+        </div>
+
+        <div class="kpi accent">
+          <div class="kpi-label"><span class="tag">[05]</span> Total Revenue</div>
+          <div class="kpi-value">
+            <span class="currency">◎</span>{{ totalRevenueSol | number:'1.6-6' }}
+          </div>
+          <div class="kpi-foot">confirmed payments</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <span class="dot"></span><span class="id">/01</span><span class="name">· revenue trend</span>
+            </div>
+            <span class="card-meta">{{ revenueChartLabels.length }} days · SOL</span>
+          </div>
+
+          <div class="chart-body">
+            @if (revenueChartLabels.length > 0) {
+              <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none">
+                <line x1="36" y1="18"  x2="584" y2="18"  stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
+                <line x1="36" y1="61"  x2="584" y2="61"  stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
+                <line x1="36" y1="105" x2="584" y2="105" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
+                <line x1="36" y1="148" x2="584" y2="148" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
+                <line x1="36" y1="192" x2="584" y2="192" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
+                <polyline [attr.points]="getLinePoints(revenueChartData)" fill="none" stroke="#00d4aa" stroke-width="1.5"/>
+              </svg>
+            } @else {
+              <div class="chart-empty">No data</div>
+            }
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <span class="dot"></span><span class="id">/02</span><span class="name">· payments per day</span>
+            </div>
+            <span class="card-meta">{{ paymentsChartLabels.length }} days · count</span>
+          </div>
+
+          <div class="chart-body">
+            @if (paymentsChartLabels.length > 0) {
+              <div class="bar-chart">
+                @for (v of paymentsChartData; track $index; let i = $index) {
+                  <div class="bar-col">
+                    <span class="bar-value">{{ v }}</span>
+                    <div class="bar" [style.height.%]="(v / maxPayments) * 100"></div>
+                    <span class="bar-label">{{ paymentsChartLabels[i] | slice:5 }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="chart-empty">No data</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span><span class="id">/03</span>
+            <span class="name">· recent activity</span>
+            <span class="count-badge">{{ payments.length }} events</span>
+          </div>
+          <span class="card-meta">stream · live</span>
+        </div>
+
+        <div class="activity-list">
+          @for (p of payments.slice(0, 8); track p.id) {
+            <div class="activity-row">
+              <div class="activity-main">
+                <span class="status-pill" [class]="statusClass(p.status)">
+                  <span class="dot"></span>{{ p.status }}
+                </span>
+                <span class="activity-merchant">{{ p.merchantName || 'Merchant' }}</span>
+              </div>
+
+              <span class="activity-email">{{ p.customerEmail || 'No customer email' }}</span>
+
+              <span class="activity-amount">
+                @if (p.currency === 'SOL' || p.currency === 'USDC') {
+                  ◎ {{ p.amount | number:'1.6-6' }} {{ p.currency }}
+                } @else {
+                  R$ {{ p.amount | number:'1.2-2' }}
+                }
+              </span>
+
+              <span class="activity-time">{{ p.createdAt | date:'dd/MM/yyyy · HH:mm:ss' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span><span class="id">/04</span>
+            <span class="name">· payments</span>
+            <span class="count-badge">{{ payments.length }} rows</span>
+          </div>
+          <span class="card-meta">sorted by {{ sortColumn }} {{ sortDir === 'desc' ? '↓' : '↑' }}</span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="payments">
+            <thead>
+            <tr>
+              <th (click)="sort('id')" [class.sorted]="sortColumn==='id'">ID <span class="arrow">↕</span></th>
+              <th (click)="sort('externalPaymentId')" [class.sorted]="sortColumn==='externalPaymentId'">External ID <span class="arrow">↕</span></th>
+              <th (click)="sort('customerName')" [class.sorted]="sortColumn==='customerName'">Customer <span class="arrow">↕</span></th>
+              <th (click)="sort('customerEmail')" [class.sorted]="sortColumn==='customerEmail'">Email <span class="arrow">↕</span></th>
+              <th (click)="sort('amount')" [class.sorted]="sortColumn==='amount'" style="text-align:right">Amount <span class="arrow">↕</span></th>
+              <th>Currency</th>
+              <th (click)="sort('status')" [class.sorted]="sortColumn==='status'">Status <span class="arrow">↕</span></th>
+              <th (click)="sort('createdAt')" [class.sorted]="sortColumn==='createdAt'">Date <span class="arrow">↕</span></th>
+            </tr>
+            </thead>
+
+            <tbody>
+              @for (p of sortedPayments; track p.id) {
+                <tr>
+                  <td class="col-id">#{{ p.id }}</td>
+                  <td class="col-id">{{ p.externalPaymentId }}</td>
+                  <td class="col-customer">{{ p.merchantName || 'Merchant' }}</td>
+                  <td class="col-email">{{ p.customerEmail }}</td>
+
+                  <td class="col-amount">
+                    @if (p.currency === 'SOL' || p.currency === 'USDC') {
+                      <span class="currency">◎</span>{{ p.amount | number:'1.6-6' }}
+                    } @else {
+                      <span class="currency">R$</span>{{ p.amount | number:'1.2-2' }}
+                    }
+                  </td>
+
+                  <td class="col-currency">{{ p.currency }}</td>
+
+                  <td>
+                    <span class="status-pill" [class]="statusClass(p.status)">
+                      <span class="dot"></span>{{ p.status }}
+                    </span>
+                  </td>
+
+                  <td class="col-date">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>

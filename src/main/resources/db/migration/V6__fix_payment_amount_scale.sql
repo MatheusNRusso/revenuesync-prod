@@ -1,0 +1,5 @@
+ALTER TABLE payments
+ALTER COLUMN amount TYPE NUMERIC(19, 9);
+
+ALTER TABLE conversions
+ALTER COLUMN value TYPE NUMERIC(19, 9);

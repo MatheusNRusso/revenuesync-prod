@@ -1,0 +1,186 @@
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-mark"></div>
+      <span>revenue<b>Sync</b></span>
+    </div>
+
+    <div class="sidebar-section">/ navigate</div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" (click)="goTo('/dashboard')">
+        <span>Dashboard</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/merchants')">
+        <span>Merchants</span>
+      </a>
+
+      <a class="sidebar-link active" (click)="goTo('/admin/payments')">
+        <span>Payments</span>
+        <span class="badge">{{ payments.length }}</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/conversions')">
+        <span>Conversions</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/leads')">
+        <span>Leads</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="logout-btn" (click)="logout()">
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="prompt">$</span>
+        <span class="topbar-title">Payments</span>
+        <span class="topbar-meta">~/admin · {{ filtered.length }} records</span>
+      </div>
+
+      <div class="topbar-right">
+        <span class="role-badge"><span class="dot"></span> Admin</span>
+
+        <button class="tb-btn" (click)="exportCsv()">
+          Export CSV
+        </button>
+
+        <button class="tb-btn primary" (click)="loadPayments()">
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Total</span>
+          <span class="stat-value">{{ payments.length }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label"><span class="dot green"></span> Succeeded</span>
+          <span class="stat-value accent">{{ succeededCount }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label"><span class="dot amber"></span> Processing</span>
+          <span class="stat-value warn">{{ processingCount }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label"><span class="dot red"></span> Failed</span>
+          <span class="stat-value danger">{{ failedCount }}</span>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        @for (status of statuses; track status) {
+          <button
+            class="filter-pill"
+            [class.active]="selectedStatus === status"
+            (click)="filterBy(status)"
+          >
+            {{ status }}
+          </button>
+        }
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span class="id">/01</span>
+            <span class="name">· payments</span>
+            <span class="count-badge">{{ filtered.length }} rows</span>
+          </div>
+
+          <span class="card-meta">sorted by {{ sortColumn }} {{ sortDir === 'desc' ? '↓' : '↑' }}</span>
+        </div>
+
+        @if (loading) {
+          <div class="state-box">Loading...</div>
+        }
+
+        @if (error) {
+          <div class="state-box error-state">{{ error }}</div>
+        }
+
+        @if (!loading && filtered.length === 0) {
+          <div class="state-box">No payments found.</div>
+        }
+
+        @if (!loading && filtered.length > 0) {
+          <div class="table-wrap">
+            <table class="payments">
+              <thead>
+              <tr>
+                <th (click)="sort('id')" [class.sorted]="sortColumn === 'id'">
+                  ID <span class="arrow">{{ sortColumn === 'id' ? sortDir === 'desc' ? '↓' : '↑' : '↕' }}</span>
+                </th>
+                <th (click)="sort('externalPaymentId')" [class.sorted]="sortColumn === 'externalPaymentId'">
+                  External ID <span class="arrow">↕</span>
+                </th>
+                <th (click)="sort('merchantName')" [class.sorted]="sortColumn === 'merchantName'">
+                  Merchant <span class="arrow">↕</span>
+                </th>
+                <th (click)="sort('customerEmail')" [class.sorted]="sortColumn === 'customerEmail'">
+                  Email <span class="arrow">↕</span>
+                </th>
+                <th (click)="sort('amount')" [class.sorted]="sortColumn === 'amount'" style="text-align:right">
+                  Amount <span class="arrow">↕</span>
+                </th>
+                <th>Currency</th>
+                <th (click)="sort('status')" [class.sorted]="sortColumn === 'status'">
+                  Status <span class="arrow">↕</span>
+                </th>
+                <th (click)="sort('createdAt')" [class.sorted]="sortColumn === 'createdAt'">
+                  Date <span class="arrow">↕</span>
+                </th>
+              </tr>
+              </thead>
+
+              <tbody>
+                @for (payment of filtered; track payment.id) {
+                  <tr>
+                    <td class="col-id">#{{ payment.id }}</td>
+                    <td class="col-id">{{ payment.externalPaymentId }}</td>
+                    <td class="col-customer">{{ payment.merchantName || 'Unknown merchant' }}</td>
+                    <td class="col-email">{{ payment.customerEmail }}</td>
+
+                    <td class="col-amount">
+                      @if (payment.currency === 'SOL' || payment.currency === 'USDC') {
+                        <span class="currency">◎</span>{{ payment.amount | number:'1.6-6' }}
+                      } @else {
+                        <span class="currency">R$</span>{{ payment.amount | number:'1.2-2' }}
+                      }
+                    </td>
+
+                    <td class="col-currency">{{ payment.currency }}</td>
+
+                    <td>
+                      <span class="status-pill" [class]="statusClass(payment.status)">
+                        <span class="dot"></span>{{ payment.status }}
+                      </span>
+                    </td>
+
+                    <td class="col-date">
+                      {{ payment.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

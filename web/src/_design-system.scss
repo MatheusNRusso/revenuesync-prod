@@ -1,0 +1,171 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// RevenueSync — Shared design-system mixins
+// Visual pattern: grid mesh with '+' markers, [ ] brackets, sparkles, scan lines
+// Place at: web/src/_design-system.scss
+// Import with: @use '../../../design-system' as ds;  (adjust depth)
+// ─────────────────────────────────────────────────────────────────────────────
+
+$ds-bg:           #080c14;
+$ds-surface:      #0d1117;
+$ds-surface-2:    #111821;
+$ds-border:       #1e2d3d;
+$ds-border-bright:#2a3f55;
+$ds-text:         #e2e8f0;
+$ds-text-dim:     #94a3b8;
+$ds-muted:        #64748b;
+$ds-accent:       #00d4aa;
+$ds-accent-2:     #00f0c2;
+$ds-purple:       #9945FF;
+$ds-warn:         #fbbf24;
+$ds-danger:       #f87171;
+
+// Background mesh: grid + '+' markers at intersections + sub-grid
+@mixin grid-mesh($size: 80px, $line: rgba(30,45,66,0.35), $sub: rgba(30,45,66,0.10), $cross: '%231e2d42', $fixed: true) {
+  content: '';
+  @if $fixed { position: fixed; } @else { position: absolute; }
+  inset: 0;
+  background-color: var(--bg, #{$ds-bg});
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><g stroke='#{$cross}' stroke-width='1' fill='none' opacity='0.9'><path d='M40 36 L40 44 M36 40 L44 40'/></g></svg>"),
+    linear-gradient(#{$line} 1px, transparent 1px),
+    linear-gradient(90deg, #{$line} 1px, transparent 1px),
+    linear-gradient(#{$sub} 1px, transparent 1px),
+    linear-gradient(90deg, #{$sub} 1px, transparent 1px);
+  background-size:
+    #{$size} #{$size}, #{$size} #{$size}, #{$size} #{$size},
+    20px 20px, 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+// Ambient color glows
+@mixin ambient-glow($i: 1) {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%,  rgba(0,212,170, 0.10 * $i), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 90% 30%, rgba(153,69,255, 0.08 * $i), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 10% 70%, rgba(0,212,170, 0.05 * $i), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+// Section label: [ XX / YY ] — TITLE
+@mixin section-label($content, $color: var(--accent, #{$ds-accent})) {
+  content: $content;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--muted, #{$ds-muted});
+  border-left: 2px solid #{$color};
+  padding-left: 10px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+// "// inline_comment" label
+@mixin inline-comment($content, $color: var(--purple, #{$ds-purple})) {
+  content: $content;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #{$color};
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+// Large [ ] brackets framing a block (apply to a positioned wrapper)
+@mixin bracket-frame($color: var(--accent, #{$ds-accent}), $width: 22px, $offset: -10px, $opacity: 0.5) {
+  position: relative;
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: #{$width};
+    border-top: 1.5px solid #{$color};
+    border-bottom: 1.5px solid #{$color};
+    opacity: #{$opacity};
+    pointer-events: none;
+  }
+  &::before { left: #{$offset};  border-left: 1.5px solid #{$color};  }
+  &::after  { right: #{$offset}; border-right: 1.5px solid #{$color}; }
+}
+
+// Decorative '+' sparkle (apply to an ::before/::after of a positioned element)
+@mixin sparkle($color: var(--accent, #{$ds-accent}), $size: 22px, $delay: 0s) {
+  content: '+';
+  font-family: 'DM Mono', monospace;
+  font-size: #{$size};
+  color: #{$color};
+  opacity: 0.55;
+  animation: ds-sparkle-pulse 3s ease-in-out infinite;
+  animation-delay: #{$delay};
+  pointer-events: none;
+}
+
+// Scan line: sweeps top → bottom on hover
+@mixin scan-line($color: var(--accent, #{$ds-accent})) {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    top: -10px;
+    background: linear-gradient(90deg, transparent, #{$color} 50%, transparent);
+    box-shadow: 0 0 12px #{$color};
+    opacity: 0;
+    pointer-events: none;
+  }
+  &:hover::after { animation: ds-scan-sweep 1.4s cubic-bezier(0.4,0,0.6,1) forwards; }
+}
+
+// ASCII divider strip
+@mixin ascii-divider($color: var(--border, #{$ds-border})) {
+  content: '────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: #{$color};
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1;
+  padding: 12px 0;
+  pointer-events: none;
+}
+
+// Live blip
+@mixin live-blip($color: var(--accent, #{$ds-accent}), $size: 7px) {
+  display: inline-block;
+  width: #{$size}; height: #{$size};
+  border-radius: 50%;
+  background: #{$color};
+  box-shadow: 0 0 8px #{$color};
+  animation: ds-pulse 2s infinite;
+}
+
+// Shared keyframes — call ONCE from styles.scss
+@mixin ds-keyframes {
+  @keyframes ds-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+  }
+  @keyframes ds-sparkle-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
+    50%      { opacity: 0.75; transform: scale(1.2) rotate(45deg); }
+  }
+  @keyframes ds-scan-sweep {
+    0%   { top: -10px; opacity: 0; }
+    10%  {              opacity: 0.7; }
+    90%  {              opacity: 0.7; }
+    100% { top: 105%;  opacity: 0; }
+  }
+  @keyframes ds-btn-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,170,0.45), 0 0 24px rgba(0,212,170,0.12); }
+    50%      { box-shadow: 0 0 0 6px rgba(0,212,170,0), 0 0 32px rgba(0,212,170,0.25); }
+  }
+}

@@ -1,0 +1,247 @@
+<div class="checkout-page">
+
+  <!-- ── Topbar ──────────────────────────────────────────────────────────── -->
+  <header class="checkout-nav">
+    <div class="checkout-nav-inner">
+      <button class="btn-back" (click)="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        Back
+      </button>
+
+      <div class="nav-logo">
+        <div class="logo-mark"></div>
+        <span class="logo-name">revenue<b>sync</b></span>
+      </div>
+
+      <div class="nav-right">
+        <span class="nav-badge">
+          <span class="sol-dot-sm"></span>
+          Solana Pay
+        </span>
+        <span class="context-tag" [class.buyer]="isBuyerContext" [class.merchant]="isMerchantContext">
+          {{ isBuyerContext ? 'buyer' : 'self-test' }}
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Loading merchant ─────────────────────────────────────────────────── -->
+  @if (loadingMerchant) {
+    <div class="checkout-wrap">
+      <div class="panel form-panel">
+        <div class="state-box">Loading merchant...</div>
+      </div>
+    </div>
+  }
+
+  @if (merchantError) {
+    <div class="checkout-wrap">
+      <div class="panel form-panel">
+        <div class="state-box error-state">{{ merchantError }}</div>
+        <button class="btn-new" (click)="goBack()">← Back</button>
+      </div>
+    </div>
+  }
+
+  <!-- ── IDLE / CREATING ──────────────────────────────────────────────────── -->
+  @if (!loadingMerchant && !merchantError && (status === 'IDLE' || status === 'CREATING')) {
+    <div class="checkout-wrap">
+      <div class="panel form-panel">
+
+        <!-- Merchant header -->
+        <div class="merchant-header">
+          <div class="merchant-avatar">
+            @if (merchant?.avatarUrl) {
+              <img [src]="merchant!.avatarUrl" [alt]="merchant!.name"/>
+            } @else {
+              <span>{{ merchantInitials }}</span>
+            }
+          </div>
+          <div class="merchant-info">
+            <h3 class="merchant-name">{{ merchant?.name }}</h3>
+            @if (merchant?.description) {
+              <p class="merchant-desc">{{ merchant?.description }}</p>
+            }
+          </div>
+        </div>
+
+        <div class="panel-head">
+          <div class="panel-eyebrow">
+            <span class="sol-dot"></span>
+            <span>{{ isBuyerContext ? 'Buyer Checkout' : 'Merchant Self-Test' }}</span>
+          </div>
+          <h2 class="panel-title">Pay with Solana</h2>
+          <p class="panel-sub">
+            {{ isBuyerContext
+              ? 'Complete your payment securely using Solana Pay.'
+              : 'Generate a test payment to verify your merchant setup.' }}
+          </p>
+        </div>
+
+        @if (errorMsg) {
+          <div class="error-msg">{{ errorMsg }}</div>
+        }
+
+        <button class="btn-create" (click)="createPayment()" [disabled]="status === 'CREATING'">
+          @if (status === 'CREATING') {
+            <span class="spinner"></span><span>Generating...</span>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            </svg>
+            <span>Generate QR Code</span>
+          }
+        </button>
+
+        <div class="pipeline-hint">
+          <span class="hint-dot"></span>
+          <span>Powered by RevenueSync — Solana Pay + Meta CAPI + Google Ads</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── PENDING ─────────────────────────────────────────────────────────── -->
+  @if (status === 'PENDING') {
+    <div class="checkout-wrap">
+      <div class="panel qr-panel">
+
+        <div class="panel-head">
+          <div class="panel-eyebrow">
+            <span class="sol-dot pulse"></span>
+            <span>Waiting for payment</span>
+            <span class="timer" [class.urgent]="timeLeft < 60">{{ timeLeftFormatted }}</span>
+          </div>
+          <h2 class="panel-title">
+            <span class="amount-display">{{ amount }} {{ currency }}</span>
+          </h2>
+          <p class="merchant-paying-to">Paying to <strong>{{ merchant?.name }}</strong></p>
+        </div>
+
+        <div class="qr-body">
+          <div class="qr-frame">
+            <div class="qr-corner tl"></div>
+            <div class="qr-corner tr"></div>
+            <div class="qr-corner bl"></div>
+            <div class="qr-corner br"></div>
+            <div id="checkout-qr-container" class="qr-container"></div>
+          </div>
+
+          <div class="qr-instructions">
+            <div class="step"><span class="step-num">01</span><span>Open Phantom wallet on your phone</span></div>
+            <div class="step"><span class="step-num">02</span><span>Tap the scanner and scan this QR code</span></div>
+            <div class="step"><span class="step-num">03</span><span>Confirm the transaction in Phantom</span></div>
+          </div>
+
+          <div class="divider-or"><span>or copy & paste in Phantom</span></div>
+
+          <div class="copy-row">
+            <div class="copy-url-display">
+              <span class="copy-prefix">solana:</span>
+              <span class="copy-url-text">{{ solanaPayUrl | slice:7:36 }}...</span>
+            </div>
+            <button class="btn-copy" (click)="copyPaymentUrl()" [class.copied]="copied">
+              @if (copied) {
+                <span>Copied!</span>
+              } @else {
+                <span>Copy</span>
+              }
+            </button>
+          </div>
+
+          <button class="btn-wallet" (click)="openInWallet()">
+            Open in Phantom (mobile)
+          </button>
+
+          <button class="btn-cancel" (click)="cancelPayment()">
+            Cancel Payment
+          </button>
+        </div>
+
+        <div class="polling-indicator">
+          <span class="poll-dot"></span>
+          <span>Checking blockchain every 3 seconds...</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── CONFIRMED ───────────────────────────────────────────────────────── -->
+  @if (status === 'CONFIRMED') {
+    <div class="checkout-wrap">
+      <div class="panel confirmed-panel">
+        <div class="confirmed-glow"></div>
+        <div class="confirmed-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h2 class="confirmed-title">Payment Confirmed</h2>
+        <p class="confirmed-amount">{{ amount }} {{ currency }}</p>
+        <p class="confirmed-merchant">to {{ merchant?.name }}</p>
+
+        <div class="confirmed-details">
+          <div class="detail-row">
+            <span class="detail-label">Transaction</span>
+            <span class="detail-value tx">{{ shortTx }}</span>
+          </div>
+          @if (confirmedAt) {
+            <div class="detail-row">
+              <span class="detail-label">Confirmed at</span>
+              <span class="detail-value">{{ confirmedAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="pipeline-success">
+          <div class="pipe-item"><span class="pipe-check">✓</span><span>Payment recorded</span></div>
+          <div class="pipe-item"><span class="pipe-check">✓</span><span>Meta CAPI dispatched</span></div>
+          <div class="pipe-item"><span class="pipe-check">✓</span><span>Google Ads dispatched</span></div>
+          <div class="pipe-item"><span class="pipe-check">✓</span><span>Lead created in Pipedrive</span></div>
+        </div>
+
+        <!-- Context-aware post-payment actions -->
+        @if (isBuyerContext) {
+          <div class="post-actions">
+            <button class="btn-new" (click)="goToDiscover()">← Back to Discover</button>
+          </div>
+        } @else {
+          <div class="post-actions">
+            <button class="btn-new" (click)="goToDashboard()">← Back to Dashboard</button>
+            <button class="btn-secondary" (click)="reset()">New Payment</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── EXPIRED / FAILED ────────────────────────────────────────────────── -->
+  @if (status === 'EXPIRED' || status === 'FAILED') {
+    <div class="checkout-wrap">
+      <div class="panel expired-panel">
+        <div class="expired-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 class="expired-title">{{ status === 'EXPIRED' ? 'Payment Expired' : 'Payment Failed' }}</h2>
+        <p class="expired-sub">Please generate a new QR code.</p>
+        <div class="post-actions">
+          <button class="btn-new" (click)="reset()">Try Again</button>
+          @if (isBuyerContext) {
+            <button class="btn-secondary" (click)="goToDiscover()">← Back to Discover</button>
+          } @else {
+            <button class="btn-secondary" (click)="goToDashboard()">← Back to Dashboard</button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

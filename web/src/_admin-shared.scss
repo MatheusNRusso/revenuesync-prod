@@ -1,0 +1,97 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin pages — shared design-system patch
+// Adds: grid mesh, ambient glow, section labels, scan lines, glow on accents.
+// Place at: web/src/app/pages/admin/_admin-shared.scss
+// Use:      @use '../../../../design-system' as ds;
+//           @use '../_admin-shared' as admin;  (wrong syntax, simpler: just @forward + @use)
+// Easiest:  each admin scss does @use 'design-system' + this mixin call.
+// ─────────────────────────────────────────────────────────────────────────────
+
+@use 'design-system' as ds;
+
+// Apply this mixin INSIDE the .app rule of each admin page
+@mixin admin-design-system($section-1-label: '[ 01 / 02 ]  —  STATS',
+                          $section-2-label: '[ 02 / 02 ]  —  LOG') {
+
+  // Override base grid mesh background with shared mixin (sharper, with + markers)
+  &::before {
+    @include ds.grid-mesh($size: 80px, $line: rgba(30,45,66,0.30), $sub: rgba(30,45,66,0.10));
+  }
+
+  // Override ambient glow with stronger shared version
+  &::after {
+    @include ds.ambient-glow($i: 1.0);
+  }
+
+  // Logo glow
+  .sidebar-mark { box-shadow: 0 0 12px rgba(0,212,170,0.35); }
+
+  // Live blip on role badge dot
+  .role-badge .dot { box-shadow: 0 0 6px var(--accent); }
+
+  // Stats row gets a section label above
+  .stats-row {
+    margin-top: 22px;
+    position: relative;
+    &::before {
+      @include ds.section-label($section-1-label);
+      position: absolute; top: -22px; left: 0;
+    }
+    &::after {
+      @include ds.inline-comment('// realtime');
+      position: absolute; top: -22px; right: 0;
+    }
+  }
+
+  // Stat cards: scan line on hover
+  .stat-card {
+    overflow: hidden;
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; height: 2px; top: -10px;
+      background: linear-gradient(90deg, transparent, var(--accent) 50%, transparent);
+      box-shadow: 0 0 12px var(--accent);
+      opacity: 0;
+      pointer-events: none;
+    }
+    &:hover::after { animation: ds-scan-sweep 1.4s cubic-bezier(0.4,0,0.6,1) forwards; }
+  }
+
+  // Card gets section label + scan line
+  .main > .card {
+    margin-top: 22px;
+    position: relative;
+    overflow: hidden;
+    &::before {
+      @include ds.section-label($section-2-label);
+      position: absolute; top: -22px; left: 0;
+    }
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; height: 2px; top: -10px;
+      background: linear-gradient(90deg, transparent, var(--accent) 50%, transparent);
+      box-shadow: 0 0 12px var(--accent);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+    &:hover::after { animation: ds-scan-sweep 1.6s cubic-bezier(0.4,0,0.6,1) forwards; }
+  }
+
+  // Decorative sparkles on the content area
+  .content {
+    position: relative;
+    > .topbar::before {
+      content: '+';
+      position: absolute;
+      top: -8px; right: 60px;
+      font-size: 14px; color: rgba(153,69,255,0.4);
+      font-family: 'DM Mono', monospace; font-weight: 300;
+      animation: ds-sparkle-pulse 3.8s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 11;
+    }
+  }
+}

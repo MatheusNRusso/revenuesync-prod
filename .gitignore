@@ -1,0 +1,85 @@
+# =========================
+# Java / Spring Boot
+# =========================
+target/
+*.class
+dependency-reduced-pom.xml
+
+# Maven Wrapper (keep wrapper properties but ignore jar)
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.conda/
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# =========================
+# IDEs
+# =========================
+.idea/
+.vscode/
+*.iml
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+application-local.yml
+application-local.properties
+**/application-local.yml
+**/application-local.properties
+
+# =========================
+# Logs / temp
+# =========================
+logs/
+*.log
+*.tmp
+*.pid
+spring.log
+
+# =========================
+# Docker overrides / volumes
+# =========================
+docker-compose.override.yml
+postgres-data/
+
+# =========================
+# ML Artifacts (model files)
+# =========================
+artifacts/
+*.joblib
+
+# =========================
+# Notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Data (avoid committing datasets)
+# =========================
+data/
+datasets/
+**/data/
+**/datasets/
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.csv

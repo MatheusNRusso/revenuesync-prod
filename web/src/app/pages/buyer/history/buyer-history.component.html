@@ -1,0 +1,101 @@
+<div class="history-page">
+  <div class="history-inner">
+
+    <header class="history-header">
+      <div class="logo" (click)="goToDiscover()">
+        <div class="logo-mark"></div>
+        <span>revenue<b>Sync</b></span>
+      </div>
+      <div class="header-actions">
+        @if (authService.isAdmin()) {
+          <button class="btn-dashboard" (click)="goToDashboard()">
+            ◉ Admin Dashboard
+          </button>
+        } @else {
+          <button class="btn-dashboard" (click)="goToDashboard()">
+            ◉ My Store
+          </button>
+        }
+        <button class="btn-discover" (click)="goToDiscover()">
+          ◎ Discover
+        </button>
+      </div>
+    </header>
+
+    <div class="history-intro">
+      <span class="kicker">[ my purchases ]</span>
+      <h1>Purchase History</h1>
+      <p>All Solana Pay transactions you've made through RevenueSync.</p>
+    </div>
+
+    @if (!loading && !error && purchases.length > 0) {
+      <div class="history-filters">
+        @for (status of availableStatuses; track status) {
+          <button
+            class="filter-btn"
+            [class.active]="selectedStatus === status"
+            (click)="selectStatus(status)"
+          >
+            {{ status }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (loading) {
+      <div class="state-loading">
+        <div class="spinner"></div>
+        <span>Loading your purchases...</span>
+      </div>
+    }
+
+    @if (!loading && error) {
+      <div class="state-error">
+        <span>{{ error }}</span>
+        <button (click)="loadPurchases()">Retry</button>
+      </div>
+    }
+
+    @if (!loading && !error && purchases.length === 0) {
+      <div class="state-empty">
+        <div class="empty-icon">◎</div>
+        <h2>No purchases yet</h2>
+        <p>Head to Discover to find merchants accepting Solana Pay.</p>
+        <button class="btn-primary" (click)="goToDiscover()">Explore Discover →</button>
+      </div>
+    }
+
+    @if (!loading && !error && purchases.length > 0 && filteredPurchases.length === 0) {
+      <div class="state-empty">
+        <div class="empty-icon">◎</div>
+        <h2>No purchases for this status</h2>
+        <p>Try another status filter.</p>
+      </div>
+    }
+
+    @if (!loading && !error && filteredPurchases.length > 0) {
+      <div class="purchase-list">
+        @for (purchase of filteredPurchases; track purchase.reference) {
+          <div class="purchase-card">
+            <div class="purchase-merchant">
+              <span class="merchant-name">{{ purchase.merchantName }}</span>
+              <span class="purchase-ref">{{ purchase.reference.slice(0, 8) }}…</span>
+            </div>
+
+            <div class="purchase-meta">
+              <span class="purchase-amount">◎ {{ purchase.amount }} {{ purchase.currency }}</span>
+              <span class="purchase-status" [class]="statusClass(purchase.status)">
+                {{ purchase.status }}
+              </span>
+            </div>
+
+            <div class="purchase-date">
+              {{ formatDate(purchase.createdAt) }}
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>

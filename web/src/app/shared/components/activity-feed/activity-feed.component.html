@@ -1,0 +1,23 @@
+
+<div class="activity-wrap">
+  <div class="activity-header">
+    <h3>Recent Activity</h3>
+    <span class="activity-count">{{ payments.length > 5 ? '5 of ' + payments.length : payments.length }} events</span>
+  </div>
+
+  @if ((payments | slice:0:5).length > 0) {
+    <ul class="activity-list">
+      @for (payment of payments | slice:0:5; track payment.id) {
+        <li class="activity-item">
+          <span class="badge" [ngClass]="payment.status.toLowerCase()">
+            {{ payment.status }}
+          </span>
+          <span class="activity-email">{{ payment.customerEmail || 'unknown@—' }}</span>
+          <span class="activity-time">{{ payment.createdAt | date:'dd/MM · HH:mm' }}</span>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="activity-empty">No recent activity</p>
+  }
+</div>

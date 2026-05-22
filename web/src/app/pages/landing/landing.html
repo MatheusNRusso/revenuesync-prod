@@ -1,0 +1,345 @@
+<div class="landing">
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="logo" (click)="goToLogin()">
+        <div class="logo-mark"></div>
+        <span class="logo-name">revenue<b>sync</b></span>
+      </a>
+      <div class="nav-links">
+        <a href="#features" class="pill">Features</a>
+        <a routerLink="/discover" class="pill">Discover</a>
+        <a href="#how" class="pill">How it works</a>
+        <a href="#docs" class="pill">Docs</a>
+        <a href="#pricing" class="pill">Pricing</a>
+        <a class="pill" style="margin-right:8px" (click)="goToLogin()">Sign in</a>
+        <a href="#cta" class="btn btn-primary">Get started →</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-eyebrow">
+            <span class="live"></span>
+            <span>v2.4 · live now</span>
+          </div>
+          <h1>
+            Accept <span class="underline accent">Solana Pay</span>.<br/>
+            Track <span class="accent">everything</span>.
+          </h1>
+          <p class="lead">
+            The revenue intelligence layer for modern SaaS. Plug in Solana Pay, watch on-chain payments, conversions, and leads stream in real-time — no SQL, no dashboards to build.
+          </p>
+          <div class="hero-cta">
+            <a href="#cta" class="btn btn-primary">Start free trial →</a>
+            <button class="btn" (click)="goToLogin()"><span style="color:var(--accent)">$</span> Sign in</button>
+          </div>
+          <div class="hero-trust">
+            <div class="avatars">
+              <div class="avatar">AK</div>
+              <div class="avatar">MR</div>
+              <div class="avatar">JL</div>
+              <div class="avatar">+</div>
+            </div>
+            <span>Trusted by 2,400+ engineering teams</span>
+          </div>
+        </div>
+
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dots"><span></span><span></span><span></span></div>
+            <div class="terminal-title">~/revenuesync — bash</div>
+            <div class="terminal-status"><span class="blip"></span><span>LIVE</span></div>
+          </div>
+          <div class="terminal-body">
+            <div class="t-line"><span class="t-prompt">$</span><span><span class="t-val">revenuesync</span> connect <span class="t-key">--source</span> <span class="t-string">solana</span></span></div>
+            <div class="t-line"><span class="t-comment">→ connecting to solana devnet... <span class="t-success">ok</span></span></div>
+            <div class="t-line"><span class="t-comment">→ fetching wallet data... <span class="t-success">ok</span></span></div>
+            <div class="t-line"><span class="t-comment">→ syncing blockchain events... <span class="t-success">ok</span></span></div>
+            <div style="height:12px"></div>
+            <div class="t-line"><span class="t-prompt">$</span><span><span class="t-val">revenuesync</span> watch <span class="t-key">--metrics</span></span></div>
+            <div style="height:8px"></div>
+            <div style="padding-left:16px;color:var(--muted);font-size:11px;margin-bottom:6px">┌─ live feed ──────────────────────────────┐</div>
+            <div style="padding-left:16px;font-size:12px">
+              <div class="t-metric"><span class="t-key">payments.today</span><span><span class="t-num">{{ paymentFormatted }}</span> <span class="t-success">↑</span></span></div>
+              <div class="t-metric"><span class="t-key">volume.sol</span><span><span class="t-num">{{ solFormatted }}</span> <span class="t-success">↑</span></span></div>
+              <div class="t-metric"><span class="t-key">conversion.rate</span><span><span class="t-num">4.82%</span> <span class="t-success">↑ 0.3</span></span></div>
+              <div class="t-metric"><span class="t-key">churn.30d</span><span><span class="t-num">2.1%</span> <span style="color:var(--accent)">↓ 0.4</span></span></div>
+            </div>
+            <div style="padding-left:16px;color:var(--muted);font-size:11px;margin-top:6px">└──────────────────────────────────────────┘</div>
+            <div style="height:14px"></div>
+            <div style="padding-left:16px;font-size:11px;color:var(--muted);margin-bottom:6px">volume.sol · last 24h</div>
+            <div class="t-bars">
+              @for (bar of bars; track $index; let i = $index) {
+                <div class="t-bar"
+                     [style.height]="barHeight(bar, i)"
+                     [style.background]="barBg(i)"
+                     [style.opacity]="barOpacity(i)">
+                </div>
+              }
+            </div>
+            <div style="height:16px"></div>
+            <div class="t-line"><span class="t-prompt">$</span><span class="t-cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="stats">
+        @for (s of stats; track $index; let i = $index) {
+          <div class="stat">
+            <div class="stat-label">[{{ (i+1).toString().padStart(2,'0') }}] {{ s.label }}</div>
+            <div class="stat-value">{{ s.value }}<span class="unit">{{ s.unit }}</span></div>
+            <div class="stat-delta" [class.down]="s.dir === 'down'">{{ s.delta }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section section" id="features">
+    <div class="container">
+      <div class="section-label">
+        <span class="dot"></span>
+        <span class="id">/02</span>
+        <span>·</span>
+        <span>features</span>
+      </div>
+      <div class="section-head" style="margin-top:48px">
+        <h2>Everything you need to <span class="accent">close books</span>.</h2>
+        <p>Six primitives. One API. Built for finance teams who want clean numbers and engineers who don't want to babysit dashboards.</p>
+      </div>
+      <div class="features">
+        @for (f of features; track $index) {
+          <div class="feature">
+            <div class="feature-head">
+              <div class="feature-icon" [innerHTML]="svg(f.icon)"></div>
+              <div class="feature-tag">{{ f.tag }}</div>
+            </div>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.desc }}</p>
+            <div class="feature-foot">
+              @for (c of f.chips; track $index; let j = $index) {
+                <span class="chip" [class.on]="j === 0">{{ c }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="how-section" id="how">
+    <div class="container">
+      <div class="section-label">
+        <span class="dot"></span>
+        <span class="id">/03</span>
+        <span>·</span>
+        <span>how it works</span>
+      </div>
+      <div class="section-head" style="margin-top:48px">
+        <h2>From <span class="accent">$ install</span> to insight in 5 min.</h2>
+        <p>No data engineering team required. Connect once and the pipeline runs itself.</p>
+      </div>
+      <div class="steps">
+        @for (s of steps; track $index; let i = $index) {
+          <div class="step" [class.active]="i === activeStep">
+            <div class="step-num">STEP {{ s.n }}</div>
+            <div class="step-circle" [innerHTML]="svg(s.icon)"></div>
+            <h4>{{ s.title }}</h4>
+            <p>{{ s.desc }}</p>
+          </div>
+          @if (i < steps.length - 1) {
+            <div class="step-arrow">→</div>
+          }
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="docs">
+    <div class="container">
+
+      <div class="section-label">
+        <span class="dot"></span>
+        <span class="id">/04</span>
+        <span>·</span>
+        <span>documentation</span>
+      </div>
+
+      <div class="section-head" style="margin-top:48px">
+        <h2>API-first <span class="accent">developer workflow</span>.</h2>
+        <p>
+          RevenueSync exposes a clean integration surface for Solana Pay,
+          conversion attribution, merchant analytics, and event streaming.
+        </p>
+      </div>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-tag">[ API ]</div>
+          <h3>REST endpoints</h3>
+          <p>
+            Merchant onboarding, payment creation, checkout status,
+            buyer history, and attribution APIs.
+          </p>
+          <div class="feature-foot">
+            <span class="chip on">Spring Boot</span>
+            <span class="chip">JWT</span>
+            <span class="chip">REST</span>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-tag">[ EVENTS ]</div>
+          <h3>Real-time sync</h3>
+          <p>
+            On-chain payment confirmations and attribution updates
+            streamed directly into dashboards.
+          </p>
+          <div class="feature-foot">
+            <span class="chip on">Solana</span>
+            <span class="chip">Webhooks</span>
+            <span class="chip">Polling</span>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-tag">[ FRONTEND ]</div>
+          <h3>Modern UI stack</h3>
+          <p>
+            Angular-based responsive dashboards optimized for
+            desktop and mobile merchant operations.
+          </p>
+          <div class="feature-foot">
+            <span class="chip on">Angular</span>
+            <span class="chip">Responsive</span>
+            <span class="chip">Mobile-first</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="container">
+
+      <div class="section-label">
+        <span class="dot"></span>
+        <span class="id">/05</span>
+        <span>·</span>
+        <span>pricing</span>
+      </div>
+
+      <div class="section-head" style="margin-top:48px">
+        <h2>Simple pricing for <span class="accent">modern merchants</span>.</h2>
+        <p>
+          Start free. Scale when your revenue grows.
+        </p>
+      </div>
+
+      <div class="features">
+
+        <div class="feature">
+          <div class="feature-tag">[ STARTER ]</div>
+          <h3>Free</h3>
+
+          <p>
+            Perfect for testing Solana Pay flows and onboarding your first customers.
+          </p>
+
+          <div class="feature-foot">
+            <span class="chip on">1 merchant</span>
+            <span class="chip">Basic analytics</span>
+            <span class="chip">Community</span>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-tag">[ PRO ]</div>
+          <h3>$29 / month</h3>
+
+          <p>
+            Advanced attribution, buyer history, merchant analytics,
+            and conversion tracking.
+          </p>
+
+          <div class="feature-foot">
+            <span class="chip on">Unlimited payments</span>
+            <span class="chip">Meta CAPI</span>
+            <span class="chip">Google Ads</span>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-tag">[ SCALE ]</div>
+          <h3>Enterprise</h3>
+
+          <p>
+            Multi-merchant environments, dedicated infrastructure,
+            custom integrations, and support.
+          </p>
+
+          <div class="feature-foot">
+            <span class="chip on">Dedicated infra</span>
+            <span class="chip">SLA</span>
+            <span class="chip">Custom APIs</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section" id="cta">
+    <div class="container">
+      <div class="cta-inner">
+        <div class="hero-eyebrow" style="margin-bottom:28px">
+          <span class="live"></span>
+          <span>14-day free trial · no card</span>
+        </div>
+        <h2>Stop guessing.<br/>Start <span class="accent">syncing</span>.</h2>
+        <p>Connect Solana Pay in under a minute. Watch your real revenue picture come into focus — on-chain, real-time, no SQL.</p>
+        <div class="cta-buttons">
+          <button class="btn btn-primary" style="padding:14px 22px;font-size:14px" (click)="goToRegister()">Connect Solana Pay →</button>
+          <button class="btn" style="padding:14px 22px;font-size:14px" (click)="goToLogin()">Sign in</button>
+        </div>
+        <div class="cta-meta">
+          <span>✓ No credit card</span>
+          <span>✓ 5-min setup</span>
+          <span>✓ Cancel anytime</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="logo" (click)="goToLanding()">
+            <div class="logo-mark"></div>
+            <span class="logo-name">revenue<b>sync</b></span>
+          </a>
+          <p>The revenue intelligence layer for modern SaaS. Open source + self-hostable.</p>
+          <div class="footer-status"><span class="blip"></span><span>All systems operational</span></div>
+        </div>
+        <div class="footer-col"><h5>Product</h5><a href="#">Features</a><a href="#">Pricing</a><a href="#">Changelog</a><a href="#">Roadmap</a></div>
+        <div class="footer-col"><h5>Developers</h5><a href="#">Documentation</a><a href="#">API reference</a><a href="#">Webhooks</a><a href="#">GitHub</a></div>
+        <div class="footer-col"><h5>Company</h5><a href="#">About</a><a href="#">Careers</a><a href="#">Contact</a></div>
+        <div class="footer-col"><h5>Legal</h5><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Security</a></div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 RevenueSync — built with <span style="color:var(--accent)">$</span> caffeine</span>
+        <div class="links"><a href="#">GitHub</a><a href="#">LinkedIn</a></div>
+      </div>
+    </div>
+  </footer>
+
+</div>

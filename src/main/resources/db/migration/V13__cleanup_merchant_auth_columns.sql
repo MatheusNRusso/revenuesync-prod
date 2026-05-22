@@ -1,0 +1,5 @@
+ALTER TABLE merchants
+DROP COLUMN IF EXISTS role;
+
+ALTER TABLE merchants
+DROP COLUMN IF EXISTS password;

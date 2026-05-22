@@ -1,0 +1,12 @@
+// Register reuses ALL login styles, then overrides the section label
+@use '../../../design-system' as ds;
+
+/* Inline-import login styles. The @import deprecation warning is OK -
+   Sass 3.0 isn't released yet and there is no clean alternative for cross-folder
+   partials with output CSS in current dart-sass + Angular bundler. */
+@import '../login/login';
+
+.login-card::after {
+  // Override section label
+  content: '[ 02 ]  —  CREATE ACCOUNT' !important;
+}

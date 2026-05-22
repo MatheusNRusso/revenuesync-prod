@@ -1,0 +1,160 @@
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-mark"></div>
+      <span>revenue<b>Sync</b></span>
+    </div>
+
+    <div class="sidebar-section">/ navigate</div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" (click)="goTo('/dashboard')">
+        <span>Dashboard</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/merchants')">
+        <span>Merchants</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/payments')">
+        <span>Payments</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/conversions')">
+        <span>Conversions</span>
+      </a>
+
+      <a class="sidebar-link active" (click)="goTo('/admin/leads')">
+        <span>Leads</span>
+        <span class="badge">{{ totalElements }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="logout-btn" (click)="logout()">
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="prompt">$</span>
+        <span class="topbar-title">Leads</span>
+        <span class="topbar-meta">~/admin · {{ totalElements }} records</span>
+      </div>
+
+      <div class="topbar-right">
+        <span class="role-badge"><span class="dot"></span> Admin</span>
+
+        <button class="tb-btn" (click)="exportCsv()">
+          Export CSV
+        </button>
+
+        <button class="tb-btn primary" (click)="loadLeads()">
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Total Leads</span>
+          <span class="stat-value">{{ totalElements }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Current Page</span>
+          <span class="stat-value accent">{{ leads.length }}</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span class="id">/01</span>
+            <span class="name">· leads</span>
+            <span class="count-badge">{{ leads.length }} rows</span>
+          </div>
+
+          <span class="card-meta">page {{ page + 1 }} of {{ totalPages }}</span>
+        </div>
+
+        @if (loading) {
+          <div class="state-box">Loading...</div>
+        }
+
+        @if (error) {
+          <div class="state-box error-state">{{ error }}</div>
+        }
+
+        @if (!loading && leads.length === 0) {
+          <div class="state-box">No leads found.</div>
+        }
+
+        @if (!loading && leads.length > 0) {
+          <div class="table-wrap">
+            <table class="leads">
+              <thead>
+              <tr>
+                <th (click)="sort('id')" [class.sorted]="sortColumn === 'id'">ID <span class="arrow">↕</span></th>
+                <th (click)="sort('name')" [class.sorted]="sortColumn === 'name'">Name <span class="arrow">↕</span></th>
+                <th (click)="sort('email')" [class.sorted]="sortColumn === 'email'">Email <span class="arrow">↕</span></th>
+                <th (click)="sort('source')" [class.sorted]="sortColumn === 'source'">Source <span class="arrow">↕</span></th>
+                <th (click)="sort('userId')" [class.sorted]="sortColumn === 'userId'">User ID <span class="arrow">↕</span></th>
+                <th (click)="sort('walletAddress')" [class.sorted]="sortColumn === 'walletAddress'">Wallet <span class="arrow">↕</span></th>
+                <th (click)="sort('createdAt')" [class.sorted]="sortColumn === 'createdAt'">Date <span class="arrow">↕</span></th>
+              </tr>
+              </thead>
+
+              <tbody>
+                @for (lead of leads; track lead.id) {
+                  <tr>
+                    <td class="col-id">#{{ lead.id }}</td>
+                    <td class="col-name">{{ lead.name || '—' }}</td>
+                    <td class="col-email">{{ lead.email }}</td>
+
+                    <td>
+                      <span class="source-pill" [class]="sourceClass(lead.source)">
+                        {{ lead.source || 'UNKNOWN' }}
+                      </span>
+                    </td>
+
+                    <td class="col-id">
+                      {{ lead.userId || '—' }}
+                    </td>
+
+                    <td class="col-id">
+                      {{ lead.walletAddress || '—' }}
+                    </td>
+
+                    <td class="col-date">
+                      {{ lead.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <button class="page-btn" (click)="prevPage()" [disabled]="page === 0">
+              ← Previous
+            </button>
+
+            <span class="page-info">
+              Page {{ page + 1 }} of {{ totalPages }}
+            </span>
+
+            <button class="page-btn" (click)="nextPage()" [disabled]="page >= totalPages - 1">
+              Next →
+            </button>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

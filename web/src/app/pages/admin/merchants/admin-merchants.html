@@ -1,0 +1,151 @@
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-mark"></div>
+      <span>revenue<b>Sync</b></span>
+    </div>
+
+    <div class="sidebar-section">/ navigate</div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" (click)="goTo('/dashboard')">
+        <span>Dashboard</span>
+      </a>
+
+      <a class="sidebar-link active" (click)="goTo('/admin/merchants')">
+        <span>Merchants</span>
+        <span class="badge">{{ merchants.length }}</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/payments')">
+        <span>Payments</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/conversions')">
+        <span>Conversions</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/leads')">
+        <span>Leads</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="logout-btn" (click)="logout()">
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="prompt">$</span>
+        <span class="topbar-title">Merchants</span>
+        <span class="topbar-meta">~/admin · {{ filtered.length }} records</span>
+      </div>
+
+      <div class="topbar-right">
+        <span class="role-badge"><span class="dot"></span> Admin</span>
+
+        <button class="tb-btn primary" type="button" (click)="loadMerchants()">
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Total Merchants</span>
+          <span class="stat-value">{{ merchants.length }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label"><span class="dot green"></span> Active</span>
+          <span class="stat-value accent">{{ activeCount }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label"><span class="dot red"></span> Inactive</span>
+          <span class="stat-value danger">{{ inactiveCount }}</span>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        @for (status of statuses; track status) {
+          <button
+            class="filter-pill"
+            type="button"
+            [class.active]="selectedStatus === status"
+            (click)="filterBy(status)"
+          >
+            {{ status }}
+          </button>
+        }
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span class="id">/01</span>
+            <span class="name">· merchants</span>
+            <span class="count-badge">{{ filtered.length }} rows</span>
+          </div>
+
+          <span class="card-meta">sorted by {{ sortColumn }} {{ sortDir === 'desc' ? '↓' : '↑' }}</span>
+        </div>
+
+        @if (loading) {
+          <div class="state-box">Loading...</div>
+        }
+
+        @if (error) {
+          <div class="state-box error-state">{{ error }}</div>
+        }
+
+        @if (!loading && filtered.length === 0) {
+          <div class="state-box">No merchants found.</div>
+        }
+
+        @if (!loading && filtered.length > 0) {
+          <div class="table-wrap">
+            <table class="merchants">
+              <thead>
+              <tr>
+                <th (click)="sort('id')" [class.sorted]="sortColumn === 'id'">ID <span class="arrow">↕</span></th>
+                <th (click)="sort('name')" [class.sorted]="sortColumn === 'name'">Merchant <span class="arrow">↕</span></th>
+                <th (click)="sort('slug')" [class.sorted]="sortColumn === 'slug'">Slug <span class="arrow">↕</span></th>
+                <th (click)="sort('email')" [class.sorted]="sortColumn === 'email'">Email <span class="arrow">↕</span></th>
+                <th (click)="sort('walletAddress')" [class.sorted]="sortColumn === 'walletAddress'">Wallet <span class="arrow">↕</span></th>
+                <th (click)="sort('userId')" [class.sorted]="sortColumn === 'userId'">Owner <span class="arrow">↕</span></th>
+                <th (click)="sort('active')" [class.sorted]="sortColumn === 'active'">Status <span class="arrow">↕</span></th>
+              </tr>
+              </thead>
+
+              <tbody>
+                @for (merchant of filtered; track merchant.id) {
+                  <tr>
+                    <td class="col-id">#{{ merchant.id }}</td>
+                    <td class="col-customer">{{ merchant.name }}</td>
+                    <td class="col-id">{{ merchant.slug }}</td>
+                    <td class="col-email">{{ merchant.email }}</td>
+                    <td class="col-id">{{ merchant.walletAddress || '—' }}</td>
+                    <td class="col-id">#{{ merchant.userId || '—' }}</td>
+                    <td>
+                      <span class="status-pill" [class]="statusClass(merchant.active)">
+                        <span class="dot"></span>
+                        {{ merchant.active ? 'ACTIVE' : 'INACTIVE' }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

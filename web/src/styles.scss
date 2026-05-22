@@ -1,0 +1,44 @@
+/* styles.scss — RevenueSync global
+   Fonts loaded via <link> in index.html to avoid SCSS compilation issues.
+   Design tokens live in each component (self-contained).
+   Shared keyframes (ds-pulse, ds-sparkle-pulse, ds-scan-sweep, ds-btn-pulse)
+   are emitted here so any component can use them.
+*/
+
+@use 'design-system' as ds;
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+}
+
+body {
+  background: #080c14;
+  color: #e8edf5;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #080c14; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* Emit shared keyframes once globally */
+@include ds.ds-keyframes;
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

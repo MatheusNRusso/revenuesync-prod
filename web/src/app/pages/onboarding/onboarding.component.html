@@ -1,0 +1,87 @@
+<div class="onboarding-page">
+  <div class="onboarding-inner">
+
+    <!-- Header -->
+    <header class="onboarding-header">
+      <div class="logo">
+        <div class="logo-mark"></div>
+        <span>revenue<b>Sync</b></span>
+      </div>
+      <button class="logout-btn" (click)="logout()">Sign out</button>
+    </header>
+
+    <!-- Intro -->
+    <div class="onboarding-intro">
+      <span class="kicker">[ welcome ]</span>
+      <h1>How do you want to use RevenueSync?</h1>
+      <p>Choose your path. You can always explore both later.</p>
+    </div>
+
+    <!-- Error -->
+    @if (error) {
+      <div class="error-box">{{ error }}</div>
+    }
+
+    <!-- Options -->
+    <div class="options-grid">
+
+      <!-- Buyer -->
+      <button
+        class="option-card buyer-card"
+        [disabled]="loading"
+        (click)="chooseBuyer()"
+      >
+        <div class="option-icon">◎</div>
+        <div class="option-body">
+          <h2>I want to consume services</h2>
+          <p>
+            Explore the Discover marketplace, find services that accept
+            Solana Pay, and keep track of everything you've purchased.
+          </p>
+          <ul class="option-features">
+            <li>Browse live merchants</li>
+            <li>Pay with Solana Pay</li>
+            <li>View your purchase history</li>
+          </ul>
+        </div>
+        <div class="option-cta">
+          @if (loading) {
+            <span class="spinner-sm"></span>
+          } @else {
+            Start exploring →
+          }
+        </div>
+      </button>
+
+      <!-- Merchant -->
+      <button
+        class="option-card merchant-card"
+        [disabled]="loading"
+        (click)="chooseMerchant()"
+      >
+        <div class="option-icon">⬡</div>
+        <div class="option-body">
+          <h2>I want to offer my service</h2>
+          <p>
+            Create a merchant profile, set your service price, and start
+            accepting Solana Pay payments from buyers on the network.
+          </p>
+          <ul class="option-features">
+            <li>List your service on Discover</li>
+            <li>Accept Solana Pay payments</li>
+            <li>Track revenue and conversions</li>
+          </ul>
+        </div>
+        <div class="option-cta">
+          Create merchant profile →
+        </div>
+      </button>
+
+    </div>
+
+    <p class="onboarding-footnote">
+      Both paths use the same account. You can switch anytime from your dashboard.
+    </p>
+
+  </div>
+</div>
