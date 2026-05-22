@@ -1,186 +1,318 @@
 # RevenueSync
 
-Stripe → Ads (Meta / Google) + CRM (Pipedrive)
+RevenueSync is a full-stack payment attribution and merchant operations platform built with Java + Spring Boot and Angular.
 
-RevenueSync is a Spring Boot API that processes Stripe webhook events and dispatches confirmed payments to advertising platforms (Meta CAPI, Google Ads) while creating leads in a CRM (Pipedrive).
-
-All operations are persisted for auditability and traceability. The project includes mock endpoints for safe local development.
+The platform enables merchants to create public checkout flows powered by Solana Pay while synchronizing payment activity, buyer history, and conversion analytics through responsive admin and merchant dashboards.
 
 ---
 
-## Business Context
+# Overview
 
-RevenueSync simulates a revenue attribution and marketing automation pipeline:
+RevenueSync evolved from a Stripe attribution prototype into a crypto-native marketplace and merchant infrastructure platform focused on:
 
-1. A payment occurs in Stripe
-2. The backend validates and normalizes the event
-3. Conversion events are sent to ad platforms
-4. A lead is created in the CRM
-5. All interactions are persisted for analytics and compliance
+- Solana Pay checkout flows
+- Merchant onboarding
+- Public merchant discovery
+- Buyer payment history
+- Admin operations dashboard
+- Conversion tracking
+- Payment synchronization
+- Responsive SaaS-style frontend
 
-This pattern is common in SaaS, e-commerce, and performance marketing systems.
-
----
-
-## Features
-
-* Stripe webhook endpoint: `POST /webhooks/stripe`
-* Signature verification (`Stripe-Signature`)
-* Event parsing and normalization
-* Idempotent payment upsert (`external_id`)
-* Conversion dispatch:
-
-  * Meta CAPI (mock supported)
-  * Google Ads (mock supported)
-* Lead creation (Pipedrive mock supported)
-* Full audit persistence:
-
-  * `payments`
-  * `conversions`
-  * `leads`
-* Flyway migrations
-* PostgreSQL support
+The project simulates a real-world production architecture with separated backend/frontend applications, persistent audit flows, and multi-role access control.
 
 ---
 
-## Supported Stripe Events
+# Core Features
 
-* `checkout.session.completed`
+## Authentication & Roles
 
----
-
-## Architecture (High Level)
-
-Stripe
-→ Webhook Controller
-→ StripeWebhookService
-→ PaymentService (idempotent upsert)
-→ ConversionService (Meta + Google)
-→ LeadService (Pipedrive)
-→ PostgreSQL
+- JWT authentication
+- User registration/login
+- Role-based access:
+  - USER
+  - MERCHANT
+  - ADMIN
 
 ---
 
-## Processing Flow
+## Merchant Operations
 
-1. Receive webhook
-2. Verify signature
-3. Parse event JSON
-4. Upsert payment
-5. If status = SUCCEEDED:
+Merchants can:
 
-   * Send conversion to Meta
-   * Send conversion to Google
-   * Create lead (if email present)
-6. Persist request and response payloads
+- Create merchant profiles
+- Configure public storefronts
+- Generate Solana Pay checkout flows
+- Track payments
+- Access buyer history
+- Monitor conversions
 
 ---
 
-## Endpoints
+## Solana Pay Integration
 
-### Stripe Webhook
+RevenueSync integrates with Solana Pay to generate QR-code based payment flows.
 
-POST `/webhooks/stripe`
+Features:
 
-### Mock Providers (local)
-
-POST `/mock/meta`
-POST `/mock/google`
-POST `/mock/pipedrive`
-
-Mocks allow full end-to-end testing without external dependencies.
-
----
-
-## Database
-
-### payments
-
-Normalized Stripe payment data.
-
-### conversions
-
-Stores each dispatch attempt:
-
-* platform
-* value
-* request_payload
-* response_payload
-* created_at
-
-### leads
-
-Stores CRM lead payload.
+- Dynamic Solana checkout
+- QR code generation
+- Payment verification polling
+- Transaction synchronization
+- Merchant wallet support
+- Mainnet-ready architecture
 
 ---
 
-## Running Locally
+## Marketplace / Discover
 
-Start PostgreSQL:
+Public merchant discovery interface:
+
+- Public storefront listing
+- Merchant cards
+- Responsive marketplace UI
+- Payment flow integration
+
+---
+
+## Admin Dashboard
+
+Administrative dashboard with:
+
+- Payment monitoring
+- Merchant management
+- Conversion tracking
+- Lead monitoring
+- Activity feeds
+- Operational analytics
+
+---
+
+## Buyer History
+
+Authenticated users can:
+
+- View purchase history
+- Filter payments
+- Track statuses
+- Access completed transactions
+
+---
+
+# Architecture
+
+## Backend
+
+- Java 21
+- Spring Boot
+- Spring Security
+- JWT Authentication
+- Spring Data JPA
+- Flyway
+- PostgreSQL
+- WebClient
+
+---
+
+## Frontend
+
+- Angular
+- TypeScript
+- SCSS
+- Responsive mobile-first dashboards
+- Lazy-loaded modules
+
+---
+
+# Project Structure
+
+```text
+src/
+ ├── controller/
+ ├── service/
+ ├── repository/
+ ├── domain/
+ ├── dto/
+ ├── infra/
+ └── config/
+
+web/
+ ├── src/app/pages/
+ ├── core/
+ ├── shared/
+ └── styles/
+```
+
+---
+
+# Database
+
+Main entities:
+
+* users
+* merchants
+* payments
+* conversions
+* leads
+* solana_payments
+
+Flyway migrations are included for full schema versioning.
+
+---
+
+# Running Locally
+
+## Backend
+
+Create your environment file:
+
+```bash
+cp .env.example .env
+```
+
+Run PostgreSQL and dependencies:
 
 ```bash
 docker compose up -d
 ```
 
-Run the API:
+Run backend:
 
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+./mvnw spring-boot:run
 ```
 
-API:
-[http://localhost:8080](http://localhost:8080)
+Backend:
+
+```text
+http://localhost:8080
+```
+
+API documentation can be enabled locally during development.
 
 ---
 
-## Example — checkout.session.completed
+## Frontend
 
 ```bash
-curl -X POST http://localhost:8080/webhooks/stripe \
-  -H "Content-Type: application/json" \
-  -H "Stripe-Signature: t=123,v1=fake" \
-  -d '{
-    "id": "evt_test_001",
-    "type": "checkout.session.completed",
-    "data": {
-      "object": {
-        "id": "cs_test_001",
-        "amount_total": 1990,
-        "currency": "brl",
-        "payment_status": "paid",
-        "customer_details": { "email": "test@example.com" }
-      }
-    }
-  }'
+cd web
+
+npm install
+
+npm start
 ```
 
-Expected result:
+Frontend:
 
-* Payment stored
-* 2 conversions created (META + GOOGLE)
-* 1 lead created
-* All payloads persisted
-
----
-
-## Design Decisions
-
-* Layered architecture (Controller → Service → Domain)
-* WebClient for outbound HTTP
-* Transactional webhook handling
-* Idempotent payment processing
-* Full audit persistence
+```text
+http://localhost:4200
+```
 
 ---
 
-## Tech Stack
+# Environment Variables
+
+Example variables are available in:
+
+```text
+.env.example
+```
+
+Main variables:
+
+```env
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+
+JWT_SECRET=
+
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+HELIUS_RPC_URL=
+```
+
+---
+
+# Current Product Status
+
+Implemented:
+
+* Responsive dashboards
+* Merchant onboarding
+* Solana Pay QR checkout
+* Buyer history
+* Discover marketplace
+* Admin operations panel
+* Mobile usability improvements
+* Production-ready environment configuration
+
+In progress:
+
+* Production deployment
+* Live RPC optimizations
+* Multi-token support
+* Real-time pricing feeds
+* Enhanced analytics
+
+---
+
+# Screens Included
+
+* Landing page
+* Discover marketplace
+* Merchant dashboard
+* Admin dashboard
+* Buyer history
+* Solana checkout flow
+
+---
+
+# Design Goals
+
+RevenueSync was designed to simulate a real SaaS/payment infrastructure product with:
+
+* layered architecture
+* auditability
+* modular frontend
+* scalable backend structure
+* responsive operations dashboards
+* production-oriented workflows
+
+---
+
+# Tech Stack
+
+## Backend
 
 * Java 21
 * Spring Boot
-* Spring Data JPA
-* WebClient
+* Spring Security
 * PostgreSQL
 * Flyway
+
+## Frontend
+
+* Angular
+* TypeScript
+* SCSS
+
+## Infrastructure
+
 * Docker
+* Solana Pay
+* Helius RPC
+
+---
+
+# License
+
+MIT
 
 
