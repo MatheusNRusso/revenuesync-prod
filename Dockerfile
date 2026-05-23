@@ -4,9 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN chmod +x mvnw
-RUN ./mvnw -DskipTests package
+RUN chmod +x ./mvnw
+RUN ./mvnw -DskipTests clean package
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/revenuesync-0.0.1-SNAPSHOT.jar"]
+CMD ["sh", "-c", "java -jar target/*.jar"]
