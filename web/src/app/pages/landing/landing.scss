@@ -54,6 +54,8 @@
   }
 
   > * { position: relative; z-index: 1; }
+  padding-top: 56px;
+
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,7 +64,7 @@ a { text-decoration: none; color: inherit; cursor: pointer; }
 
 // ── Nav ────────────────────────────────────────────────────
 .nav {
-  position: sticky; top: 0; z-index: 1000;
+  position: fixed; top: 0; z-index: 1000;
   background: rgba(12,18,32,0.88);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
@@ -74,6 +76,11 @@ a { text-decoration: none; color: inherit; cursor: pointer; }
     height: 56px;
   }
   .nav-links { display: flex; align-items: center; gap: 4px; }
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3000;
+
 }
 
 .logo {
