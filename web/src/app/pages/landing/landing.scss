@@ -733,3 +733,47 @@ a { text-decoration: none; color: inherit; cursor: pointer; }
     gap: 12px;
   }
 }
+@media (max-width: 768px) {
+  .nav {
+    padding: 0;
+  }
+
+  .nav .nav-inner {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .nav .logo {
+    justify-content: center;
+  }
+
+  .nav .nav-links {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .nav .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav .pill,
+  .nav .btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-height: 38px;
+  }
+
+  .landing {
+    padding-top: 118px;
+  }
+}
