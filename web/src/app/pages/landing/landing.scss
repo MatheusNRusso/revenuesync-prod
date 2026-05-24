@@ -16,7 +16,7 @@
   font-family: 'DM Mono', 'Courier New', monospace;
   min-height: 100vh;
   position: relative;
-  overflow-x: hidden;
+  overflow-x: clip;
 
   // ── Grid mesh with '+' markers at intersections ───────────
   &::before {
