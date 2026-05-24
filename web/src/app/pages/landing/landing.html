@@ -7,11 +7,11 @@
         <span class="logo-name">revenue<b>sync</b></span>
       </a>
       <div class="nav-links">
-        <a href="#features" class="pill">Features</a>
+        <a (click)="scrollToSection('features')" class="pill">Features</a>
         <a routerLink="/discover" class="pill">Discover</a>
-        <a href="#how" class="pill">How it works</a>
-        <a href="#docs" class="pill">Docs</a>
-        <a href="#pricing" class="pill">Pricing</a>
+        <a (click)="scrollToSection('how')" class="pill">How it works</a>
+        <a (click)="scrollToSection('docs')" class="pill">Docs</a>
+        <a (click)="scrollToSection('pricing')" class="pill">Pricing</a>
         <a class="pill" style="margin-right:8px" (click)="goToLogin()">Sign in</a>
         <a href="#cta" class="btn btn-primary">Get started →</a>
       </div>

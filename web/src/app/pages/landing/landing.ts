@@ -83,6 +83,20 @@ export class LandingComponent implements OnInit, OnDestroy {
     );
   }
 
+  scrollToSection(sectionId: string): void {
+    const element = document.getElementById(sectionId);
+    if (!element) {
+      return;
+  }
+  const headerOffset = 72;
+  const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+  const offsetPosition = elementPosition - headerOffset;
+  window.scrollTo({
+    top: offsetPosition,
+    behavior: 'smooth',
+    });
+  }
+
   get solFormatted(): string    { return this.solVolume.toFixed(2) + ' SOL'; }
   get paymentFormatted(): string { return this.paymentCount.toLocaleString('en-US'); }
 
