@@ -42,3 +42,18 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Public pages fixed navigation fallback */
+html {
+  scroll-padding-top: 80px;
+}
+
+.landing > .nav,
+.discover-page > .discover-nav {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 9999 !important;
+}
