@@ -1,21 +1,25 @@
 {
   "outputDirectory": "dist/web/browser",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "https://revenuesync-api.onrender.com/api/:path*"
+      "src": "/api/(.*)",
+      "dest": "https://revenuesync-api.onrender.com/api/$1"
     },
     {
-      "source": "/auth/:path*",
-      "destination": "https://revenuesync-api.onrender.com/auth/:path*"
+      "src": "/auth/(.*)",
+      "dest": "https://revenuesync-api.onrender.com/auth/$1"
     },
     {
-      "source": "/oauth2/:path*",
-      "destination": "https://revenuesync-api.onrender.com/oauth2/:path*"
+      "src": "/oauth2/(.*)",
+      "dest": "https://revenuesync-api.onrender.com/oauth2/$1"
     },
     {
-      "source": "/login/oauth2/:path*",
-      "destination": "https://revenuesync-api.onrender.com/login/oauth2/:path*"
+      "src": "/login/oauth2/(.*)",
+      "dest": "https://revenuesync-api.onrender.com/login/oauth2/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
