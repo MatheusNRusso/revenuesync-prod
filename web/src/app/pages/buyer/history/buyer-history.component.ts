@@ -69,7 +69,7 @@ export class BuyerHistoryComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.http.get<UserProfile>('/api/me/profile').subscribe({
+    this.http.get<UserProfile>('/api/me/dashboard').subscribe({
       next: (profile) => {
         this.hasMerchantProfile = !!profile?.hasMerchants;
         this.loadPurchaseHistory();

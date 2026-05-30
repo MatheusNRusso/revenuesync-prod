@@ -89,7 +89,7 @@ export class MeService {
   constructor(private http: HttpClient) {}
 
   getProfile(): Observable<MeProfileResponse> {
-    return this.http.get<MeProfileResponse>('/api/me/profile');
+    return this.http.get<MeProfileResponse>('/api/me/dashboard');
   }
 
   getDashboard(): Observable<MeDashboard> {
