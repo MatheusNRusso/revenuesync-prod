@@ -24,6 +24,8 @@ public class GitHubOAuthService {
 
     @Transactional
     public String handleOAuthSuccess(Authentication authentication) {
+        log.info("OAuth2 handleOAuthSuccess called");
+        try {
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
 
         String email = oauthUser.getAttribute("email");
