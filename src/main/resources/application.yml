@@ -1,4 +1,10 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            redirect-uri: "${BASE_URL}/login/oauth2/code/github"
   application:
     name: revenue-sync
 
