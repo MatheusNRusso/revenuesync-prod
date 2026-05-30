@@ -1,0 +1,138 @@
+<div class="builder-page">
+
+  <nav class="builder-nav">
+    <div class="nav-inner">
+      <div class="nav-logo" (click)="goToDiscover()">
+        <div class="logo-mark"></div>
+        <span>revenue<b>Sync</b></span>
+        <span class="nav-tag">Discover</span>
+      </div>
+      <button class="btn-back" (click)="goToDiscover()">← Back to Discover</button>
+    </div>
+  </nav>
+
+  <div class="builder-container">
+
+    @if (loading) {
+      <div class="state-loading">
+        <span class="accent">$</span> loading profile<span class="blink">▊</span>
+      </div>
+    }
+
+    @if (!loading && error) {
+      <div class="state-error">
+        <span class="accent">$</span> {{ error }}
+        <button class="btn-back" (click)="goToDiscover()">← Back to Discover</button>
+      </div>
+    }
+
+    @if (!loading && profile) {
+
+      <!-- Hero -->
+      <div class="builder-hero">
+        <div class="builder-avatar-wrap">
+          @if (profile.githubAvatarUrl) {
+            <img class="builder-avatar" [src]="profile.githubAvatarUrl" [alt]="profile.displayName" />
+          } @else {
+            <div class="builder-avatar builder-avatar-initials">
+              {{ (profile.displayName || profile.githubUsername || '?').slice(0, 2).toUpperCase() }}
+            </div>
+          }
+        </div>
+
+        <div class="builder-identity">
+          <h1 class="builder-name">{{ profile.displayName || profile.githubUsername }}</h1>
+          @if (profile.headline) {
+            <p class="builder-headline">{{ profile.headline }}</p>
+          }
+          <div class="builder-meta">
+            @if (profile.location) {
+              <span class="meta-item">⌖ {{ profile.location }}</span>
+            }
+            @if (profile.category) {
+              <span class="category-badge">{{ getCategoryLabel(profile.category) }}</span>
+            }
+          </div>
+          <div class="builder-links">
+            @if (profile.githubProfileUrl) {
+              <a class="btn-link" [href]="profile.githubProfileUrl" target="_blank" rel="noopener">
+                GitHub ↗
+              </a>
+            }
+            @if (profile.websiteUrl) {
+              <a class="btn-link" [href]="profile.websiteUrl" target="_blank" rel="noopener">
+                Website ↗
+              </a>
+            }
+          </div>
+        </div>
+
+        @if (profile.githubUsername) {
+          <div class="github-stats">
+            <div class="gh-stat">
+              <span class="gh-stat-value">{{ profile.githubPublicRepos }}</span>
+              <span class="gh-stat-label">repos</span>
+            </div>
+            <div class="gh-stat">
+              <span class="gh-stat-value">{{ profile.githubFollowers }}</span>
+              <span class="gh-stat-label">followers</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Bio -->
+      @if (profile.bio) {
+        <div class="builder-section">
+          <span class="section-label">[ bio ]</span>
+          <p class="builder-bio">{{ profile.bio }}</p>
+        </div>
+      }
+
+      <!-- Stack / Tags -->
+      @if (profile.tags && profile.tags.length > 0) {
+        <div class="builder-section">
+          <span class="section-label">[ stack ]</span>
+          <div class="tags-list">
+            @for (tag of profile.tags; track tag) {
+              <span class="tag">{{ tag }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Services / Merchants -->
+      @if (profile.merchants && profile.merchants.length > 0) {
+        <div class="builder-section">
+          <span class="section-label">[ services ]</span>
+          <div class="services-grid">
+            @for (merchant of profile.merchants; track merchant.id) {
+              <div class="service-card">
+                <div class="service-header">
+                  @if (merchant.avatarUrl) {
+                    <img class="service-avatar" [src]="merchant.avatarUrl" [alt]="merchant.name" />
+                  } @else {
+                    <div class="service-avatar service-avatar-initials">
+                      {{ merchant.name.slice(0, 2).toUpperCase() }}
+                    </div>
+                  }
+                  <div class="service-identity">
+                    <h3 class="service-name">{{ merchant.name }}</h3>
+                    <span class="service-slug">{{ merchant.slug }}</span>
+                  </div>
+                </div>
+                @if (merchant.description) {
+                  <p class="service-desc">{{ merchant.description }}</p>
+                }
+                <button class="btn-pay" (click)="onPayNow(merchant.slug)">
+                  <span>◎</span> Pay with Solana →
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    }
+  </div>
+</div>

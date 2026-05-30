@@ -103,6 +103,17 @@ export const routes: Routes = [
   { path: 'pay/:slug',        component: PayComponent            },
   { path: 'oauth2/callback',  component: OAuth2CallbackComponent },
   {
+    path: 'u/:slug',
+    loadComponent: () =>
+      import('./pages/builder/builder').then(m => m.BuilderComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () =>
+      import('./pages/profile/profile').then(m => m.ProfileComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'discover',
     loadComponent: () =>
       import('./pages/discover/discover.component')

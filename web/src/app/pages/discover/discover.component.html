@@ -6,24 +6,20 @@
         <span>revenue<b>Sync</b></span>
         <span class="nav-tag">Discover</span>
       </div>
-
       <div class="nav-links">
-        <a (click)="goToLanding()">Home</a>
-        <a href="#">Docs</a>
-        <a href="#">For Builders</a>
+        <a (click)="scrollTo('top')">Home</a>
+        <a (click)="scrollTo('marketplace')">Merchants</a>
+        <a (click)="scrollTo('builders')">Builders</a>
       </div>
       <div class="nav-actions">
         @if (authService.isAuthenticated()) {
           @if (authService.isAdmin()) {
-            <button class="btn-signin" (click)="goToAdminDashboard()">
-              Admin Dashboard
-            </button>
+            <button class="btn-signin" (click)="goToAdminDashboard()">Admin Dashboard</button>
           } @else {
-            <button class="btn-connect" (click)="goToMyStore()">
-              ◎ My Store →
-            </button>
+            <button class="btn-connect" (click)="goToMyStore()">◎ My Store →</button>
           }
           <button class="btn-signin" (click)="goToMyPurchases()">My Purchases</button>
+          <button class="btn-profile" (click)="goToMyProfile()">⬡ My Profile</button>
         } @else {
           <button class="btn-signin" (click)="goToLogin()">Sign in</button>
           <button class="btn-connect" (click)="goToRegister()">◎ List your business →</button>
@@ -40,25 +36,18 @@
           <span class="version">v2.4 ·</span>
           <span class="label">Solana Pay attribution now live</span>
         </div>
-
         <h1 class="hero-title">
           <span class="hero-title-line">Discover</span>
           <span class="shimmer-text">Merchants.</span>
         </h1>
-
-        <p class="hero-sub">
-          Pay anyone, anywhere, instantly with <span class="accent">Solana</span>.
-        </p>
-
+        <p class="hero-sub">Pay anyone, anywhere, instantly with <span class="accent">Solana</span>.</p>
         <p class="hero-cmd">
           <span class="accent">$</span> revenuesync discover --network mainnet<span class="blink">▊</span>
         </p>
-
         <div class="hero-actions">
           <button class="btn-primary" (click)="scrollToMerchants()">◎ Browse Merchants →</button>
           <button class="btn-secondary" (click)="goToRegister()">✦ List your business</button>
         </div>
-
         <div class="hero-trust">
           <span>⚡ ~400ms confirmation</span>
           <span class="sep">·</span>
@@ -78,7 +67,6 @@
         <span class="live-dot pulse"></span>
         <span class="live-label">LIVE NETWORK</span>
       </div>
-
       <div class="stats-items">
         <div class="stat-item">
           <div class="stat-icon-box">⚡</div>
@@ -87,7 +75,6 @@
             <span class="stat-val">~400ms</span>
           </div>
         </div>
-
         <div class="stat-item">
           <div class="stat-icon-box">$</div>
           <div class="stat-info">
@@ -95,7 +82,6 @@
             <span class="stat-val">$0.00025</span>
           </div>
         </div>
-
         <div class="stat-item">
           <div class="stat-icon-box">◎</div>
           <div class="stat-info">
@@ -103,7 +89,6 @@
             <span class="stat-val">Solana Mainnet</span>
           </div>
         </div>
-
         <div class="stat-item">
           <div class="stat-icon-box">✦</div>
           <div class="stat-info">
@@ -122,23 +107,19 @@
           <circle cx="11" cy="11" r="7"></circle>
           <path d="M21 21l-5-5"></path>
         </svg>
-
         <input
           type="text"
           [(ngModel)]="query"
           (input)="applyFilter()"
           placeholder="Search merchants, categories, live network, or showcase..."
           class="search-input" />
-
         <span class="search-kbd">⌘K</span>
       </div>
-
       <div class="filter-meta">
         <span class="filter-label">[ marketplace ]</span>
         <span>{{ marketplaceMerchants.length }} merchants</span>
       </div>
     </div>
-
     <div class="category-pills">
       @for (cat of categories; track cat) {
         <button
@@ -169,7 +150,6 @@
           Live merchants registered on RevenueSync plus featured showcase cards for product demonstration.
         </p>
       </div>
-
       <div class="section-meta">
         <span class="live-dot-sm"></span>
         {{ filteredMerchants.length }} visible
@@ -181,13 +161,11 @@
         <span class="accent">$</span> syncing live merchants --source backend<span class="blink">▊</span>
       </div>
     }
-
     @if (!liveLoading && liveError) {
       <div class="marketplace-status warning">
         <span class="accent">$</span> {{ liveError }} Showing featured showcase merchants.
       </div>
     }
-
     @if (!loading && !liveLoading && filteredMerchants.length === 0) {
       <div class="state-empty marketplace-empty">
         <span class="accent">$</span> no merchants matching filter —
@@ -201,16 +179,13 @@
           class="merchant-card marketplace-card"
           [class.live-merchant-card]="m.source === 'LIVE'"
           [class.featured-merchant-card]="m.source === 'FEATURED'"
-          [style.--cat-color]="getCategoryColor(m)"
-        >
+          [style.--cat-color]="getCategoryColor(m)">
           <div class="card-glow"></div>
           <div class="scan-line"></div>
-
           <div class="card-top-row">
             <div class="avatar-wrap">
               <div class="merchant-avatar">
                 <div class="avatar-bg"></div>
-
                 @if (m.avatarUrl) {
                   <img [src]="m.avatarUrl" [alt]="m.name" />
                 } @else if (m.source === 'LIVE') {
@@ -221,66 +196,187 @@
                   <span class="avatar-emoji">{{ getEmoji(m) }}</span>
                 }
               </div>
-
-              <div class="avatar-notch">
-                {{ m.source === 'LIVE' ? 'LIVE' : '◎' }}
-              </div>
+              <div class="avatar-notch">{{ m.source === 'LIVE' ? 'LIVE' : '◎' }}</div>
             </div>
-
             <div class="card-top-right">
               <span
                 class="card-live merchant-source"
                 [class.live-source]="m.source === 'LIVE'"
-                [class.featured-source]="m.source === 'FEATURED'"
-              >
-                @if (m.source === 'LIVE') {
-                  <span class="live-dot-sm"></span>
-                }
+                [class.featured-source]="m.source === 'FEATURED'">
+                @if (m.source === 'LIVE') { <span class="live-dot-sm"></span> }
                 {{ getSourceLabel(m) }}
               </span>
-
               <span class="card-index">{{ padIndex(i) }}</span>
             </div>
           </div>
-
           <div class="card-body">
             <h3 class="merchant-name">{{ m.name }}</h3>
-            <p class="merchant-desc">
-              {{ m.description || 'Accepting Solana Pay payments through RevenueSync.' }}
-            </p>
+            <p class="merchant-desc">{{ m.description || 'Accepting Solana Pay payments through RevenueSync.' }}</p>
           </div>
-
           <div class="wallet-row">
             <span class="wallet-label">{{ getMerchantMetaLabel(m) }}:</span>
-            <span class="wallet-val">
-              {{ m.source === 'LIVE' ? m.slug : m.slug + '...demo' }}
-            </span>
+            <span class="wallet-val">{{ m.source === 'LIVE' ? m.slug : m.slug + '...demo' }}</span>
             <span class="tx-badge">{{ getTxCount(m) }} tx</span>
           </div>
-
           <div class="card-footer">
             <span
               class="category-badge"
               [class.live-badge]="m.source === 'LIVE'"
               [style.border-color]="getCategoryColor(m) + '55'"
               [style.color]="getCategoryColor(m)"
-              [style.background]="getCategoryColor(m) + '14'"
-            >
+              [style.background]="getCategoryColor(m) + '14'">
               {{ m.source === 'LIVE' ? 'LIVE NETWORK' : m.category }}
             </span>
-
             @if (m.source === 'LIVE') {
-              <button
-                class="btn-pay-now"
-                type="button"
-                (click)="onPayNow(m.slug); $event.stopPropagation()"
-              >
+              <button class="btn-pay-now" type="button" (click)="onPayNow(m.slug); $event.stopPropagation()">
                 <span>◎</span> Pay Now →
               </button>
             } @else {
-              <button class="btn-pay-now showcase-disabled" type="button" disabled>
-                Showcase
-              </button>
+              <button class="btn-pay-now showcase-disabled" type="button" disabled>Showcase</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ── Builders / Developer Profiles ──────────────────────────────────── -->
+  <section class="builders-section" id="builders">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">BUILDER NETWORK</span>
+        <h2 class="section-title">Developers & Builders</h2>
+        <p class="section-subtitle">
+          Engineers, founders and creators building on Solana Pay — powered by GitHub.
+        </p>
+      </div>
+      <div class="section-meta">
+        <span class="live-dot-sm"></span>
+        {{ profiles.length }} profiles
+      </div>
+    </div>
+
+    <!-- Profile filters -->
+    <div class="profile-filters">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M21 21l-5-5"></path>
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="profileSearch"
+          (input)="onProfileSearch()"
+          placeholder="Search builders, technologies, roles..."
+          class="search-input" />
+      </div>
+      <div class="category-pills">
+        @for (cat of profileCategories; track cat.value) {
+          <button
+            class="pill"
+            [class.active]="profileCategory === cat.value"
+            (click)="setProfileCategory(cat.value)">
+            {{ cat.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Loading -->
+    @if (profilesLoading) {
+      <div class="marketplace-status">
+        <span class="accent">$</span> fetching builder profiles --source github<span class="blink">▊</span>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (!profilesLoading && profilesError) {
+      <div class="marketplace-status warning">
+        <span class="accent">$</span> {{ profilesError }}
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!profilesLoading && !profilesError && profiles.length === 0) {
+      <div class="state-empty">
+        <span class="accent">$</span> no builders found —
+        <span class="accent">be the first to join</span>
+        @if (!authService.isAuthenticated()) {
+          <button class="btn-ghost" (click)="goToRegister()">Create profile →</button>
+        }
+      </div>
+    }
+
+    <!-- Profile grid -->
+    <div class="profile-grid">
+      @for (profile of profiles; track profile.id; let i = $index) {
+        <div class="profile-card" (click)="goToBuilder(profile.slug)" style="cursor:pointer">
+          <div class="card-glow"></div>
+
+          <!-- Avatar -->
+          <div class="profile-avatar-wrap">
+            @if (profile.githubAvatarUrl) {
+              <img class="profile-avatar" [src]="profile.githubAvatarUrl" [alt]="profile.displayName" />
+            } @else {
+              <div class="profile-avatar profile-avatar-initials" [style.background]="getProfileGradient(profile)">
+                {{ getProfileInitials(profile) }}
+              </div>
+            }
+            <div class="profile-avatar-ring"></div>
+          </div>
+
+          <!-- Identity -->
+          <div class="profile-identity">
+            <h3 class="profile-name">{{ profile.displayName || profile.githubUsername }}</h3>
+            @if (profile.headline) {
+              <p class="profile-headline">{{ profile.headline }}</p>
+            }
+            @if (profile.location) {
+              <span class="profile-location">⌖ {{ profile.location }}</span>
+            }
+          </div>
+
+          <!-- Category badge -->
+          @if (profile.category) {
+            <div class="profile-category">
+              <span class="category-badge">{{ getCategoryLabel(profile.category) }}</span>
+            </div>
+          }
+
+          <!-- GitHub stats -->
+          @if (profile.githubUsername) {
+            <div class="profile-github-stats">
+              <span class="gh-stat">
+                <span class="gh-stat-icon">⎇</span>
+                {{ profile.githubPublicRepos }} repos
+              </span>
+              <span class="gh-stat">
+                <span class="gh-stat-icon">◈</span>
+                {{ profile.githubFollowers }} followers
+              </span>
+            </div>
+          }
+
+          <!-- Tags -->
+          @if (profile.tags && profile.tags.length > 0) {
+            <div class="profile-tags">
+              @for (tag of profile.tags.slice(0, 4); track tag) {
+                <span class="profile-tag">{{ tag }}</span>
+              }
+            </div>
+          }
+
+          <!-- CTAs -->
+          <div class="profile-footer">
+            @if (profile.githubProfileUrl) {
+              <a class="btn-ghost-sm" [href]="profile.githubProfileUrl" target="_blank" rel="noopener">
+                GitHub ↗
+              </a>
+            }
+            @if (profile.websiteUrl) {
+              <a class="btn-ghost-sm" [href]="profile.websiteUrl" target="_blank" rel="noopener">
+                Portfolio ↗
+              </a>
             }
           </div>
         </div>
@@ -291,15 +387,10 @@
   <div class="marquee-wrap">
     <div class="marquee-track">
       @for (item of marqueeItems; track $index) {
-        <span class="marquee-item">
-          <span class="marquee-dot"></span>{{ item }}
-        </span>
+        <span class="marquee-item"><span class="marquee-dot"></span>{{ item }}</span>
       }
-
       @for (item of marqueeItems; track $index) {
-        <span class="marquee-item">
-          <span class="marquee-dot"></span>{{ item }}
-        </span>
+        <span class="marquee-item"><span class="marquee-dot"></span>{{ item }}</span>
       }
     </div>
   </div>
@@ -311,7 +402,6 @@
           <div class="logo-mark-sm"></div>
           <span>revenue<b>Sync</b></span>
         </div>
-
         <span class="footer-powered">
           Powered by <b>RevenueSync</b> ·
           <span class="accent">Solana Pay</span> +
@@ -319,13 +409,11 @@
           <span class="google">Google Ads</span>
         </span>
       </div>
-
       <div class="footer-right">
         <span class="solana-wordmark">Solana</span>
         <span class="footer-network">● mainnet-beta</span>
       </div>
     </div>
-
     <div class="footer-links">
       <span>© 2026 RevenueSync, Inc. — built on solana</span>
       <a href="#">Docs</a>

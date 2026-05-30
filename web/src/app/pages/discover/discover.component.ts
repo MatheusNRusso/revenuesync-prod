@@ -1,31 +1,25 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { AuthService } from '../../core/services/auth.service';
-import { DiscoverService } from '../../core/services/discover.service';
-import { PublicMerchant } from '../../core/models/discover/public-merchant.model';
+import { AuthService }          from '../../core/services/auth.service';
+import { DiscoverService }       from '../../core/services/discover.service';
+import { PublicProfileService }  from '../../core/services/public-profile.service';
+import { PublicMerchant }        from '../../core/models/discover/public-merchant.model';
+import { PublicProfile, ProfileCategory, CATEGORY_LABELS } from '../../core/models/discover/public-profile.model';
 
 type MerchantSource = 'LIVE' | 'FEATURED';
 
 interface FeaturedMerchant {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  avatarUrl?: string;
-  category?: string;
+  id: string; name: string; slug: string;
+  description?: string; avatarUrl?: string; category?: string;
 }
 
 interface MarketplaceMerchant {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  avatarUrl?: string;
-  category: string;
-  source: MerchantSource;
+  id: string; name: string; slug: string;
+  description?: string; avatarUrl?: string;
+  category: string; source: MerchantSource;
 }
 
 @Component({
@@ -36,6 +30,8 @@ interface MarketplaceMerchant {
   styleUrls: ['./discover.component.scss'],
 })
 export class DiscoverComponent implements OnInit, OnDestroy {
+
+  // ── Merchant state ────────────────────────────────────────────────────────
   loading     = false;
   liveLoading = false;
   liveError: string | null = null;
@@ -54,6 +50,30 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     'Store', 'Gaming', 'Art', 'Food', 'Tech', 'Music',
   ];
 
+  // ── Profile state ─────────────────────────────────────────────────────────
+  profilesLoading = false;
+  profilesError: string | null = null;
+  profiles: PublicProfile[] = [];
+  profileSearch  = '';
+  profileCategory: ProfileCategory | 'All' = 'All';
+
+
+  readonly profileCategories: Array<{ value: ProfileCategory | 'All'; label: string }> = [
+    { value: 'All',               label: 'All Builders'  },
+    { value: 'BACKEND_DEVELOPER', label: 'Backend'       },
+    { value: 'FRONTEND_DEVELOPER',label: 'Frontend'      },
+    { value: 'FULLSTACK_DEVELOPER',label: 'Full Stack'   },
+    { value: 'DEVOPS',            label: 'DevOps'        },
+    { value: 'BLOCKCHAIN_WEB3',   label: 'Web3'          },
+    { value: 'DATA_ML',           label: 'Data / ML'     },
+    { value: 'DESIGNER',          label: 'Designer'      },
+    { value: 'BUSINESS_FOUNDER',  label: 'Founder'       },
+    { value: 'AGENCY_STUDIO',     label: 'Agency'        },
+  ];
+
+  readonly CATEGORY_LABELS = CATEGORY_LABELS;
+
+  // ── Shared ────────────────────────────────────────────────────────────────
   marqueeItems: string[] = [
     'Solana Pay attribution live', '~400ms confirmation',
     '$0.00025 average fee', 'Non-custodial payments',
@@ -72,7 +92,6 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     Food: '🍜', Tech: '💻', Music: '🎧',
   };
 
-  /** Gradient palette for deterministic LIVE merchant initials avatars. */
   private readonly avatarGradients: Array<[string, string]> = [
     ['#00d4aa', '#0094ff'], ['#9945FF', '#00d4aa'], ['#f472b6', '#9945FF'],
     ['#fbbf24', '#f472b6'], ['#60a5fa', '#00d4aa'], ['#a78bfa', '#60a5fa'],
@@ -83,14 +102,17 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   private tpsTimer?: number;
 
   constructor(
-    public readonly router:          Router,
-    public readonly authService:     AuthService,
-    private readonly discoverService: DiscoverService,
+    public  readonly router:               Router,
+    public  readonly authService:          AuthService,
+    private readonly discoverService:      DiscoverService,
+    private readonly publicProfileService: PublicProfileService,
+    private readonly cdr:                  ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.loadFeaturedMerchants();
     this.loadLiveMerchants();
+    this.loadProfiles();
     this.tpsTimer = window.setInterval(() => {
       this.tps = 2400 + Math.floor(Math.random() * 1400);
     }, 2000) as unknown as number;
@@ -100,25 +122,49 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     if (this.tpsTimer) clearInterval(this.tpsTimer);
   }
 
-  // ── Checkout gate ──────────────────────────────────────────────────────────
+  // ── Profile loading ───────────────────────────────────────────────────────
 
-  /**
-   * Handles Pay Now on a LIVE merchant card.
-   *
-   * context=buyer is always set here because the user arrived via the public
-   * Discover marketplace. The checkout page uses this to show buyer-specific
-   * post-payment actions (View Receipt / Back to Discover) instead of the
-   * merchant self-test actions (Back to Dashboard / New Payment).
-   *
-   * Auth gate:
-   *   - Authenticated  → navigate directly to checkout
-   *   - Unauthenticated → /login?redirect=<checkoutPath>
-   *     The login component reads this param and redirects after sign-in,
-   *     preserving both slug and context across the auth flow.
-   */
+  loadProfiles(): void {
+    this.profilesLoading = true;
+    this.profilesError   = null;
+    const cat = this.profileCategory === 'All' ? undefined : this.profileCategory;
+    const q   = this.profileSearch.trim() || undefined;
+    this.publicProfileService.listProfiles(cat, q).subscribe({
+      next: (data) => { this.profiles = data; this.profilesLoading = false; },
+      error: ()    => { this.profilesError = 'Failed to load profiles.'; this.profilesLoading = false; },
+    });
+  }
+
+  setProfileCategory(cat: ProfileCategory | 'All'): void {
+    this.profileCategory = cat;
+    this.loadProfiles();
+  }
+
+  onProfileSearch(): void { this.loadProfiles(); }
+
+
+  // ── Profile helpers ───────────────────────────────────────────────────────
+
+  getProfileGradient(profile: PublicProfile): string {
+    const pair = this.avatarGradients[this.hash(profile.slug) % this.avatarGradients.length];
+    return `linear-gradient(135deg, ${pair[0]} 0%, ${pair[1]} 100%)`;
+  }
+
+  getProfileInitials(profile: PublicProfile): string {
+    const name  = profile.displayName || profile.githubUsername || '?';
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  getCategoryLabel(cat: ProfileCategory): string {
+    return CATEGORY_LABELS[cat] ?? cat;
+  }
+
+  // ── Merchant methods (unchanged) ──────────────────────────────────────────
+
   onPayNow(slug: string): void {
     const checkoutPath = `/solana/checkout?slug=${encodeURIComponent(slug)}&context=buyer`;
-
     if (this.authService.isAuthenticated()) {
       this.router.navigateByUrl(checkoutPath);
     } else {
@@ -126,41 +172,29 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Avatar helpers ─────────────────────────────────────────────────────────
-
-  /**
-   * Returns 1–2 uppercase initials for LIVE merchants without an avatarUrl.
-   *   "My Store" → "MS" | "Acme" → "AC"
-   */
   getAvatarInitials(merchant: MarketplaceMerchant): string {
     const words = merchant.name.trim().split(/\s+/).filter(Boolean);
     if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
     return merchant.name.slice(0, 2).toUpperCase();
   }
 
-  /**
-   * Returns a deterministic CSS linear-gradient seeded by merchant.id.
-   * Stable across renders — same merchant always gets the same gradient.
-   */
   getAvatarGradient(merchant: MarketplaceMerchant): string {
     const pair = this.avatarGradients[this.hash(merchant.id) % this.avatarGradients.length];
     return `linear-gradient(135deg, ${pair[0]} 0%, ${pair[1]} 100%)`;
   }
-
-  // ── Data loading ───────────────────────────────────────────────────────────
 
   loadFeaturedMerchants(): void {
     this.loading = true;
     this.featuredMerchants = [
       { id: 'featured-1', name: 'Helio Store',    slug: 'helio',   description: 'Digital goods store accepting Solana Pay.',       category: 'Store'  },
       { id: 'featured-2', name: 'Star Atlas',     slug: 'staratl', description: 'Open-world space exploration MMO on Solana.',     category: 'Gaming' },
-      { id: 'featured-3', name: 'Magic Eden Lab', slug: 'melab',   description: 'NFT drops and collectibles marketplace.',        category: 'Art'    },
-      { id: 'featured-4', name: 'Solana Sushi',   slug: 'sushi',   description: 'Pay your tab with SOL — instant settlement.',    category: 'Food'   },
-      { id: 'featured-5', name: 'Phantom Tools',  slug: 'phantom', description: 'Developer tooling and SDKs for Web3 builders.',  category: 'Tech'   },
-      { id: 'featured-6', name: 'Audius Live',    slug: 'audius',  description: 'Independent artists, paid directly per stream.', category: 'Music'  },
-      { id: 'featured-7', name: 'Tensor Trade',   slug: 'tensor',  description: 'Pro-grade NFT trading terminal.',                category: 'Art'    },
-      { id: 'featured-8', name: 'Jito Coffee',    slug: 'jito',    description: 'Specialty roasters — pay with USDC.',            category: 'Food'   },
-      { id: 'featured-9', name: 'Backpack Build', slug: 'backpck', description: 'Builder collective shipping xNFT apps.',        category: 'Tech'   },
+      { id: 'featured-3', name: 'Magic Eden Lab', slug: 'melab',   description: 'NFT drops and collectibles marketplace.',         category: 'Art'    },
+      { id: 'featured-4', name: 'Solana Sushi',   slug: 'sushi',   description: 'Pay your tab with SOL — instant settlement.',     category: 'Food'   },
+      { id: 'featured-5', name: 'Phantom Tools',  slug: 'phantom', description: 'Developer tooling and SDKs for Web3 builders.',   category: 'Tech'   },
+      { id: 'featured-6', name: 'Audius Live',    slug: 'audius',  description: 'Independent artists, paid directly per stream.',  category: 'Music'  },
+      { id: 'featured-7', name: 'Tensor Trade',   slug: 'tensor',  description: 'Pro-grade NFT trading terminal.',                 category: 'Art'    },
+      { id: 'featured-8', name: 'Jito Coffee',    slug: 'jito',    description: 'Specialty roasters — pay with USDC.',             category: 'Food'   },
+      { id: 'featured-9', name: 'Backpack Build', slug: 'backpck', description: 'Builder collective shipping xNFT apps.',          category: 'Tech'   },
     ];
     this.loading = false;
     this.rebuildMarketplace();
@@ -190,14 +224,12 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       description: m.description || 'Accepting Solana Pay payments through RevenueSync.',
       avatarUrl: m.avatarUrl, category: 'Live Network', source: 'LIVE' as MerchantSource,
     }));
-
     const featured: MarketplaceMerchant[] = this.featuredMerchants.map((m) => ({
       id: m.id, name: m.name, slug: m.slug, description: m.description,
       avatarUrl: m.avatarUrl,
       category: m.category || this.getCategoryForMerchant(m.name),
       source: 'FEATURED' as MerchantSource,
     }));
-
     this.marketplaceMerchants = [...live, ...featured];
     this.applyFilter();
   }
@@ -255,30 +287,35 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     return ((this.hash(seed) % range) + base).toLocaleString();
   }
 
-  getSourceLabel(m: MarketplaceMerchant):     string { return m.source === 'LIVE' ? 'LIVE' : 'FEATURED'; }
+  getSourceLabel(m: MarketplaceMerchant):       string { return m.source === 'LIVE' ? 'LIVE' : 'FEATURED'; }
   getMerchantMetaLabel(m: MarketplaceMerchant): string { return m.source === 'LIVE' ? 'merchant' : 'showcase'; }
-  padIndex(index: number):                    string { return String(index + 1).padStart(2, '0'); }
+  padIndex(index: number):                      string { return String(index + 1).padStart(2, '0'); }
+
+  scrollTo(id: string): void {
+    if (id === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    const el = document.getElementById(id);
+    if (el) { const top = el.getBoundingClientRect().top + window.scrollY - 70; window.scrollTo({ top, behavior: 'smooth' }); }
+  }
 
   scrollToMerchants(): void {
     document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  goToLanding():  void { this.router.navigate(['/']); }
-  goToLogin():    void { this.router.navigate(['/login']); }
-  goToRegister(): void { this.router.navigate(['/register']); }
+  goToMyProfile():      void { this.router.navigate(['/profile']);           }
+  goToBuilder(slug: string): void { this.router.navigate(['/u', slug]); }
+  goToLanding():        void { this.router.navigate(['/']);                  }
+  goToLogin():          void { this.router.navigate(['/login']);             }
+  goToRegister():       void { this.router.navigate(['/register']);          }
+  goToMyPurchases():    void { this.router.navigate(['/buyer/history']);     }
+  goToMyStore():        void { this.router.navigate(['/merchant/dashboard']);}
+  goToAdminDashboard(): void { this.router.navigate(['/dashboard']);         }
 
-  goToMyPurchases(): void { this.router.navigate(['/buyer/history']); }
-  goToMyStore():     void { this.router.navigate(['/merchant/dashboard']); }
-
-  goToAdminDashboard(): void {
-    this.router.navigate(['/dashboard']);
-  }
-
-  /** @deprecated Use onPayNow(m.slug). Kept for any residual template references. */
+  /** @deprecated Use onPayNow(m.slug). */
   payNow(merchant: MarketplaceMerchant): void {
     if (merchant.source === 'FEATURED') return;
     this.onPayNow(merchant.slug);
   }
+
   private hash(value: string): number {
     let h = 0;
     for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;
