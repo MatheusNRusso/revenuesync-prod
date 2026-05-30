@@ -2,6 +2,10 @@
   "outputDirectory": "dist/web/browser",
   "routes": [
     {
+      "src": "/login/oauth2/(.*)",
+      "dest": "https://revenuesync-api.onrender.com/login/oauth2/$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "https://revenuesync-api.onrender.com/api/$1"
     },
@@ -12,10 +16,6 @@
     {
       "src": "/oauth2/(.*)",
       "dest": "https://revenuesync-api.onrender.com/oauth2/$1"
-    },
-    {
-      "src": "/login/oauth2/(.*)",
-      "dest": "https://revenuesync-api.onrender.com/login/oauth2/$1"
     },
     {
       "handle": "filesystem"
