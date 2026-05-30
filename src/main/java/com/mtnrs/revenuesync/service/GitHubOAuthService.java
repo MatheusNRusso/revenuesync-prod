@@ -26,34 +26,35 @@ public class GitHubOAuthService {
     public String handleOAuthSuccess(Authentication authentication) {
         log.info("OAuth2 handleOAuthSuccess called");
         try {
-        OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
+            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
+            String email = oauthUser.getAttribute("email");
+            String name = oauthUser.getAttribute("login");
 
-        String email = oauthUser.getAttribute("email");
-        String name = oauthUser.getAttribute("login");
+            if (name == null || name.isBlank()) {
+                name = "github-user";
+            }
+            if (email == null || email.isBlank()) {
+                email = name + "@github.oauth";
+            }
 
-        if (name == null || name.isBlank()) {
-            name = "github-user";
+            final String finalEmail = email.toLowerCase().trim();
+            final String finalName = name.trim();
+
+            User user = userRepository.findByEmail(finalEmail)
+                    .orElseGet(() -> userRepository.save(
+                            User.of(
+                                    finalName,
+                                    finalEmail,
+                                    passwordEncoder.encode(UUID.randomUUID().toString()),
+                                    UserRole.USER
+                            )
+                    ));
+
+            log.info("GitHub OAuth login successful: {}", finalEmail);
+            return jwtService.generateToken(user);
+        } catch (Exception e) {
+            log.error("OAuth2 handleOAuthSuccess failed: {}", e.getMessage(), e);
+            throw e;
         }
-
-        if (email == null || email.isBlank()) {
-            email = name + "@github.oauth";
-        }
-
-        final String finalEmail = email.toLowerCase().trim();
-        final String finalName = name.trim();
-
-        User user = userRepository.findByEmail(finalEmail)
-                .orElseGet(() -> userRepository.save(
-                        User.of(
-                                finalName,
-                                finalEmail,
-                                passwordEncoder.encode(UUID.randomUUID().toString()),
-                                UserRole.USER
-                        )
-                ));
-
-        log.info("GitHub OAuth login successful: {}", finalEmail);
-
-        return jwtService.generateToken(user);
     }
 }
