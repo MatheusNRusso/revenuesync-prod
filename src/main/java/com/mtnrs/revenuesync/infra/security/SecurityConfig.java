@@ -19,13 +19,25 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final UserRepository userRepository;
     private final GitHubOAuthService gitHubOAuthService;
     private final PasswordEncoder passwordEncoder;
+    private final String frontendUrl;
+
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          UserRepository userRepository,
+                          GitHubOAuthService gitHubOAuthService,
+                          PasswordEncoder passwordEncoder,
+                          @org.springframework.beans.factory.annotation.Value("${app.frontend-url}") String frontendUrl) {
+        this.jwtAuthFilter  = jwtAuthFilter;
+        this.userRepository = userRepository;
+        this.gitHubOAuthService = gitHubOAuthService;
+        this.passwordEncoder = passwordEncoder;
+        this.frontendUrl    = frontendUrl;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -51,10 +63,10 @@ public class SecurityConfig {
                         )
                         .successHandler((request, response, authentication) -> {
                             String jwt = gitHubOAuthService.handleOAuthSuccess(authentication);
-                            response.sendRedirect("http://localhost:4200/oauth2/callback?token=" + jwt);
+                            response.sendRedirect(frontendUrl + "/oauth2/callback?token=" + jwt);
                         })
                         .failureHandler((request, response, exception) -> {
-                            response.sendRedirect("http://localhost:4200/login?error=oauth2");
+                            response.sendRedirect(frontendUrl + "/login?error=oauth2");
                         })
                 )
                 .exceptionHandling(ex -> ex
