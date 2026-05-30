@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/validate").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/public/merchants/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/public/profiles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/solana/status/**").permitAll()
                         .requestMatchers("/api/solana/payment/**").authenticated()
                         .requestMatchers("/api/payments/**", "/api/conversions/**").hasRole("ADMIN")
