@@ -64,7 +64,11 @@ public class SecurityConfig {
                         )
                         .successHandler((request, response, authentication) -> {
                             String jwt = gitHubOAuthService.handleOAuthSuccess(authentication);
-                            response.sendRedirect(frontendUrl + "/oauth2/callback?token=" + jwt);
+                            String redirectUrl = frontendUrl + "/oauth2/callback?token=" + jwt;
+                            response.setContentType("text/html");
+                            response.getWriter().write(
+                                "<html><body><script>window.location.href='" + redirectUrl + "'</script></body></html>"
+                            );
                         })
                         .failureHandler((request, response, exception) -> {
                             response.sendRedirect(frontendUrl + "/login?error=oauth2");
