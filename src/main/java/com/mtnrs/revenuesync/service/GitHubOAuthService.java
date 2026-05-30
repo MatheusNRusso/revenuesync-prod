@@ -18,43 +18,52 @@ import java.util.UUID;
 @Slf4j
 public class GitHubOAuthService {
 
-    private final UserRepository userRepository;
-    private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
+    private final UserRepository       userRepository;
+    private final JwtService           jwtService;
+    private final PasswordEncoder      passwordEncoder;
+    private final PublicProfileService publicProfileService;
 
     @Transactional
     public String handleOAuthSuccess(Authentication authentication) {
-        log.info("OAuth2 handleOAuthSuccess called");
-        try {
-            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
-            String email = oauthUser.getAttribute("email");
-            String name = oauthUser.getAttribute("login");
+        OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
 
-            if (name == null || name.isBlank()) {
-                name = "github-user";
-            }
-            if (email == null || email.isBlank()) {
-                email = name + "@github.oauth";
-            }
+        // ── Extract GitHub attributes ─────────────────────────────────────────
+        String login     = oauthUser.getAttribute("login");
+        String email     = oauthUser.getAttribute("email");
+        String avatarUrl = oauthUser.getAttribute("avatar_url");
+        String htmlUrl   = oauthUser.getAttribute("html_url");
+        Integer repos    = oauthUser.getAttribute("public_repos");
+        Integer followers= oauthUser.getAttribute("followers");
 
-            final String finalEmail = email.toLowerCase().trim();
-            final String finalName = name.trim();
+        if (login == null || login.isBlank()) login = "github-user";
+        if (email == null || email.isBlank()) email = login + "@github.oauth";
 
-            User user = userRepository.findByEmail(finalEmail)
-                    .orElseGet(() -> userRepository.save(
-                            User.of(
-                                    finalName,
-                                    finalEmail,
-                                    passwordEncoder.encode(UUID.randomUUID().toString()),
-                                    UserRole.USER
-                            )
-                    ));
+        final String finalEmail = email.toLowerCase().trim();
+        final String finalLogin = login.trim();
 
-            log.info("GitHub OAuth login successful: {}", finalEmail);
-            return jwtService.generateToken(user);
-        } catch (Exception e) {
-            log.error("OAuth2 handleOAuthSuccess failed: {}", e.getMessage(), e);
-            throw e;
-        }
+        // ── Upsert user ───────────────────────────────────────────────────────
+        User user = userRepository.findByEmail(finalEmail)
+                .orElseGet(() -> userRepository.save(
+                        User.of(
+                                finalLogin,
+                                finalEmail,
+                                passwordEncoder.encode(UUID.randomUUID().toString()),
+                                UserRole.USER
+                        )
+                ));
+
+        // ── Sync GitHub public profile data ───────────────────────────────────
+        publicProfileService.syncGitHubData(
+                user,
+                finalLogin,
+                avatarUrl,
+                htmlUrl,
+                repos    != null ? repos     : 0,
+                followers!= null ? followers : 0
+        );
+
+        log.info("GitHub OAuth login successful: {} (github={})", finalEmail, finalLogin);
+
+        return jwtService.generateToken(user);
     }
 }

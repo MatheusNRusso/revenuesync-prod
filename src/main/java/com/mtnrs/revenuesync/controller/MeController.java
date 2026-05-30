@@ -5,16 +5,19 @@ import com.mtnrs.revenuesync.dto.merchant.MeProfileResponse;
 import com.mtnrs.revenuesync.dto.merchant.CreateMerchantProfileRequest;
 import com.mtnrs.revenuesync.dto.merchant.MerchantProfileResponse;
 import com.mtnrs.revenuesync.dto.payment.PaymentResponseDto;
+import com.mtnrs.revenuesync.dto.profile.PublicProfileResponse;
+import com.mtnrs.revenuesync.dto.profile.UpsertPublicProfileRequest;
 import com.mtnrs.revenuesync.mapper.PaymentMapper;
 import com.mtnrs.revenuesync.repository.MerchantRepository;
 import com.mtnrs.revenuesync.repository.PaymentRepository;
 import com.mtnrs.revenuesync.repository.SolanaPaymentRepository;
 import com.mtnrs.revenuesync.repository.UserRepository;
 import com.mtnrs.revenuesync.service.MerchantProfileService;
+import com.mtnrs.revenuesync.service.PublicProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -28,12 +31,38 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MeController {
 
-    private final PaymentRepository        paymentRepository;
-    private final PaymentMapper            paymentMapper;
-    private final MerchantRepository       merchantRepository;
-    private final MerchantProfileService   merchantProfileService;
-    private final SolanaPaymentRepository  solanaPaymentRepository;
-    private final UserRepository             userRepository;
+    private final PaymentRepository       paymentRepository;
+    private final PaymentMapper           paymentMapper;
+    private final MerchantRepository      merchantRepository;
+    private final MerchantProfileService  merchantProfileService;
+    private final SolanaPaymentRepository solanaPaymentRepository;
+    private final UserRepository          userRepository;
+    private final PublicProfileService    publicProfileService;
+
+    // ── Public profile ────────────────────────────────────────────────────────
+
+    @GetMapping("/public-profile")
+    public ResponseEntity<PublicProfileResponse> getPublicProfile(
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(publicProfileService.getMyProfile(user));
+    }
+
+    @PutMapping("/public-profile")
+    public ResponseEntity<PublicProfileResponse> upsertPublicProfile(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody UpsertPublicProfileRequest request
+    ) {
+        return ResponseEntity.ok(publicProfileService.upsert(user, request));
+    }
+
+    @PatchMapping("/public-profile/visibility")
+    public ResponseEntity<PublicProfileResponse> setVisibility(
+            @AuthenticationPrincipal User user,
+            @RequestParam boolean isPublic
+    ) {
+        return ResponseEntity.ok(publicProfileService.setVisibility(user, isPublic));
+    }
 
     // ── Dashboard ─────────────────────────────────────────────────────────────
 
@@ -45,20 +74,20 @@ public class MeController {
 
         var merchantSummaries = merchants.stream()
                 .map(merchant -> {
-                    var totalPayments   = paymentRepository.countByMerchant(merchant);
-                    var totalRevenue    = paymentRepository.sumSucceededAmountByMerchant(merchant);
-                    var totalRevenueSol = paymentRepository.sumSucceededAmountByMerchantAndCurrency(merchant, "SOL");
+                    var totalPayments    = paymentRepository.countByMerchant(merchant);
+                    var totalRevenue     = paymentRepository.sumSucceededAmountByMerchant(merchant);
+                    var totalRevenueSol  = paymentRepository.sumSucceededAmountByMerchantAndCurrency(merchant, "SOL");
 
                     return Map.<String, Object>of(
-                            "id",             merchant.getId(),
-                            "name",           merchant.getName(),
-                            "email",          merchant.getEmail(),
-                            "slug",           merchant.getSlug(),
-                            "walletAddress",  merchant.getWalletAddress(),
-                            "active",         merchant.isActive(),
-                            "totalPayments",  totalPayments,
-                            "totalRevenue",   totalRevenue    != null ? totalRevenue    : BigDecimal.ZERO,
-                            "totalRevenueSol",totalRevenueSol != null ? totalRevenueSol : BigDecimal.ZERO
+                            "id",              merchant.getId(),
+                            "name",            merchant.getName(),
+                            "email",           merchant.getEmail(),
+                            "slug",            merchant.getSlug(),
+                            "walletAddress",   merchant.getWalletAddress(),
+                            "active",          merchant.isActive(),
+                            "totalPayments",   totalPayments,
+                            "totalRevenue",    totalRevenue    != null ? totalRevenue    : BigDecimal.ZERO,
+                            "totalRevenueSol", totalRevenueSol != null ? totalRevenueSol : BigDecimal.ZERO
                     );
                 })
                 .toList();
@@ -73,19 +102,19 @@ public class MeController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return ResponseEntity.ok(Map.of(
-                "userId",         user.getId(),
-                "name",           user.getName(),
-                "email",          user.getEmail(),
-                "hasMerchants",   !merchants.isEmpty(),
-                "totalMerchants", merchants.size(),
-                "totalPayments",  totalPayments,
-                "totalRevenue",   totalRevenue,
-                "totalRevenueSol",totalRevenueSol,
-                "merchants",      merchantSummaries
+                "userId",          user.getId(),
+                "name",            user.getName(),
+                "email",           user.getEmail(),
+                "hasMerchants",    !merchants.isEmpty(),
+                "totalMerchants",  merchants.size(),
+                "totalPayments",   totalPayments,
+                "totalRevenue",    totalRevenue,
+                "totalRevenueSol", totalRevenueSol,
+                "merchants",       merchantSummaries
         ));
     }
 
-    // ── Merchant payments (received) ──────────────────────────────────────────
+    // ── Payments ──────────────────────────────────────────────────────────────
 
     @GetMapping("/payments")
     public ResponseEntity<Page<PaymentResponseDto>> payments(
@@ -94,7 +123,6 @@ public class MeController {
     ) {
         var merchants = merchantRepository.findAllByUserId(user.getId());
         if (merchants.isEmpty()) return ResponseEntity.ok(Page.empty(pageable));
-
         return ResponseEntity.ok(
                 paymentRepository.findByMerchantIn(merchants, pageable)
                         .map(paymentMapper::toDto)
@@ -110,23 +138,14 @@ public class MeController {
         var merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Merchant not found"));
         if (!merchant.belongsTo(user)) return ResponseEntity.status(403).build();
-
         return ResponseEntity.ok(
                 paymentRepository.findByMerchant(merchant, pageable)
                         .map(paymentMapper::toDto)
         );
     }
 
-    // ── Buyer purchase history ────────────────────────────────────────────────
+    // ── Purchases ─────────────────────────────────────────────────────────────
 
-    /**
-     * Returns all Solana payments made BY this user as a buyer,
-     * identified by their account email. Used by /buyer/history and the
-     * "My Purchases" tab on the merchant dashboard.
-     *
-     * Each entry contains enough data to render a readable receipt:
-     * merchant name (resolved from merchantId), amount, currency, status, date.
-     */
     @GetMapping("/purchases")
     public ResponseEntity<List<Map<String, Object>>> purchases(
             @AuthenticationPrincipal User user
@@ -135,11 +154,9 @@ public class MeController {
                 .findByCustomerEmailOrderByCreatedAtDesc(user.getEmail())
                 .stream()
                 .map(payment -> {
-                    // Resolve merchant name for display — graceful fallback if deleted
                     String merchantName = merchantRepository.findById(payment.getMerchantId())
                             .map(m -> m.getName())
                             .orElse("Unknown merchant");
-
                     return Map.<String, Object>of(
                             "reference",    payment.getReference(),
                             "merchantId",   payment.getMerchantId(),
@@ -147,77 +164,11 @@ public class MeController {
                             "amount",       payment.getAmount().toPlainString(),
                             "currency",     payment.getCurrency(),
                             "status",       payment.getStatus().name(),
-                            "createdAt",    payment.getCreatedAt() != null
-                                    ? payment.getCreatedAt().toString() : "",
-                            "confirmedAt",  payment.getConfirmedAt() != null
-                                    ? payment.getConfirmedAt().toString() : ""
+                            "createdAt",    payment.getCreatedAt() != null ? payment.getCreatedAt().toString() : "",
+                            "confirmedAt",  payment.getConfirmedAt() != null ? payment.getConfirmedAt().toString() : ""
                     );
                 })
                 .toList();
-
         return ResponseEntity.ok(purchases);
-    }
-
-    // ── Profile ───────────────────────────────────────────────────────────────
-
-    @GetMapping("/profile")
-    public ResponseEntity<MeProfileResponse> profile(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(merchantProfileService.getCurrentUserProfile(user));
-    }
-
-
-    // ── Onboarding ────────────────────────────────────────────────────────────
-
-    /**
-     * Marks the authenticated user's onboarding as complete.
-     * Called by the /onboarding page after the user chooses their intent:
-     *   - "I want to consume services" → completes onboarding, frontend goes to /buyer/history
-     *   - "I want to offer my service" → frontend goes to /merchant/new first,
-     *     then calls this endpoint after the merchant is created.
-     *
-     * Idempotent — safe to call multiple times.
-     */
-    @PatchMapping("/onboarding")
-    public ResponseEntity<Map<String, Object>> completeOnboarding(
-            @AuthenticationPrincipal User user
-    ) {
-        user.completeOnboarding();
-        userRepository.save(user);
-        return ResponseEntity.ok(Map.of(
-                "onboardingCompleted", true,
-                "hasMerchants", !merchantRepository.findAllByUserId(user.getId()).isEmpty()
-        ));
-    }
-
-    // ── Merchant CRUD ─────────────────────────────────────────────────────────
-
-    @PostMapping("/merchant-profile")
-    public ResponseEntity<?> createMerchantProfile(
-            @AuthenticationPrincipal User user,
-            @RequestBody CreateMerchantProfileRequest request
-    ) {
-        try {
-            MerchantProfileResponse response =
-                    merchantProfileService.createMerchantProfile(user, request);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-        }
-    }
-
-    @PutMapping("/merchants/{merchantId}/wallet")
-    public ResponseEntity<?> updateWallet(
-            @AuthenticationPrincipal User user,
-            @PathVariable Long merchantId,
-            @RequestBody Map<String, String> body
-    ) {
-        try {
-            MerchantProfileResponse response = merchantProfileService.updateWalletAddress(
-                    user, merchantId, body.get("walletAddress")
-            );
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-        }
     }
 }
