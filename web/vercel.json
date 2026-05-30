@@ -18,6 +18,9 @@
       "dest": "https://revenuesync-api.onrender.com/login/oauth2/$1"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
