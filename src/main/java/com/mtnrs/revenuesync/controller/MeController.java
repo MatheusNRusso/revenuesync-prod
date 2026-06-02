@@ -145,6 +145,46 @@ public class MeController {
         }
     }
 
+
+    // ── Merchant management ───────────────────────────────────────────────────
+    @PatchMapping("/merchants/{merchantId}/activate")
+    public ResponseEntity<?> activateMerchant(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long merchantId
+    ) {
+        try {
+            merchantProfileService.activateMerchant(user, merchantId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @PatchMapping("/merchants/{merchantId}/deactivate")
+    public ResponseEntity<?> deactivateMerchant(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long merchantId
+    ) {
+        try {
+            merchantProfileService.deactivateMerchant(user, merchantId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/merchants/{merchantId}")
+    public ResponseEntity<?> deleteMerchant(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long merchantId
+    ) {
+        try {
+            merchantProfileService.deleteMerchant(user, merchantId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
     // ── Payments ──────────────────────────────────────────────────────────────
 
     @GetMapping("/payments")

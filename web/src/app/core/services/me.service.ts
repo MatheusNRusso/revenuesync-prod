@@ -130,4 +130,16 @@ export class MeService {
       { walletAddress }
     );
   }
+
+  activateMerchant(merchantId: number): Observable<void> {
+    return this.http.patch<void>(`/api/me/merchants/${merchantId}/activate`, {});
+  }
+
+  deactivateMerchant(merchantId: number): Observable<void> {
+    return this.http.patch<void>(`/api/me/merchants/${merchantId}/deactivate`, {});
+  }
+
+  deleteMerchant(merchantId: number): Observable<void> {
+    return this.http.delete<void>(`/api/me/merchants/${merchantId}`);
+  }
 }

@@ -388,6 +388,32 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
+  activateMerchant(merchant: MerchantDashboardSummary, event: Event): void {
+    event.stopPropagation();
+    this.meService.activateMerchant(merchant.id).subscribe({
+      next: () => this.loadProfile(),
+      error: () => { this.error = "Failed to activate merchant."; this.cdr.detectChanges(); }
+    });
+  }
+
+  deactivateMerchant(merchant: MerchantDashboardSummary, event: Event): void {
+    event.stopPropagation();
+    if (!confirm(`Deactivate merchant "${merchant.name}"?`)) return;
+    this.meService.deactivateMerchant(merchant.id).subscribe({
+      next: () => this.loadProfile(),
+      error: () => { this.error = "Failed to deactivate merchant."; this.cdr.detectChanges(); }
+    });
+  }
+
+  deleteMerchant(merchant: MerchantDashboardSummary, event: Event): void {
+    event.stopPropagation();
+    if (!confirm(`Delete merchant "${merchant.name}"? This action cannot be undone.`)) return;
+    this.meService.deleteMerchant(merchant.id).subscribe({
+      next: () => this.loadProfile(),
+      error: () => { this.error = "Failed to delete merchant."; this.cdr.detectChanges(); }
+    });
+  }
+
   statusClass(status: string): string {
     return status.toLowerCase();
   }

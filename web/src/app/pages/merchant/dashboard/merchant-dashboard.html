@@ -252,6 +252,18 @@
                     Edit wallet
                   </span>
 
+                  @if (merchant.active) {
+                    <span class="danger-link" (click)="deactivateMerchant(merchant, $event)">
+                      Deactivate
+                    </span>
+                  } @else {
+                    <span class="pay-link" (click)="activateMerchant(merchant, $event)">
+                      Activate
+                    </span>
+                  }
+                  <span class="danger-link" (click)="deleteMerchant(merchant, $event)">
+                    Delete
+                  </span>
                   <span class="pay-link" (click)="goToSolanaCheckout(merchant); $event.stopPropagation()">
                     Generate payment
                   </span>

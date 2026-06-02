@@ -631,6 +631,15 @@
       text-decoration: underline;
     }
   }
+
+  .danger-link {
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    &:hover { text-decoration: underline; }
+  }
 }
 
 // KPI
