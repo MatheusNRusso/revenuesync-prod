@@ -121,14 +121,6 @@ export class MeService {
     );
   }
 
-  deleteAccount(): Observable<void> {
-    return this.http.delete<void>("/api/me/account");
-  }
-
-  deactivateMerchant(merchantId: number): Observable<void> {
-    return this.http.delete<void>(`/api/me/merchants/${merchantId}`);
-  }
-
   updateMerchantWallet(
     merchantId: number,
     walletAddress: string

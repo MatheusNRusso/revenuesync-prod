@@ -57,13 +57,3 @@ html {
   width: 100% !important;
   z-index: 9999 !important;
 }
-
-/* Global light mode override */
-body.light-mode {
-  background: #f1f5f9;
-  color: #0f172a;
-
-  ::-webkit-scrollbar-track { background: #f1f5f9; }
-  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
-}

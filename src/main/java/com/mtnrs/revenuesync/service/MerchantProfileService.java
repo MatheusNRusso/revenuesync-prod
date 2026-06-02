@@ -80,17 +80,6 @@ public class MerchantProfileService {
         return toResponse(merchant);
     }
 
-    @Transactional
-    public void deactivateMerchant(User user, Long merchantId) {
-        Merchant merchant = merchantRepository.findById(merchantId)
-                .orElseThrow(() -> new IllegalArgumentException("Merchant not found"));
-        if (!merchant.belongsTo(user)) {
-            throw new IllegalArgumentException("Merchant does not belong to authenticated user");
-        }
-        merchant.deactivate();
-        merchantRepository.save(merchant);
-    }
-
     public MerchantProfileResponse toResponse(Merchant merchant) {
         return new MerchantProfileResponse(
                 merchant.getId(),

@@ -1,5 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-import { ThemeService } from '../../../core/services/theme.service';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -22,9 +21,6 @@ export class MerchantPayments implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
-
-  private readonly themeService = inject(ThemeService);
-  isDark = this.themeService.isDark;
 
   dashboard: MeDashboard | null = null;
   merchants: MerchantDashboardSummary[] = [];
@@ -50,10 +46,6 @@ export class MerchantPayments implements OnInit {
   numberOfElements = 0;
 
   ngOnInit(): void {
-    this.themeService.isDark$.subscribe(dark => {
-      this.isDark = dark;
-      this.cdr.detectChanges();
-    });
     this.loadDashboard();
   }
 

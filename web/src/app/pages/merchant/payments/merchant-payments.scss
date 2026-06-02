@@ -16,17 +16,6 @@
   --danger:       #f87171;
   --purple:       #9945FF;
 
-  &.light {
-    --bg:           #f1f5f9;
-    --surface:      #ffffff;
-    --surface-2:    #f8fafc;
-    --border:       #e2e8f0;
-    --border-bright:#cbd5e1;
-    --text:         #0f172a;
-    --text-dim:     #475569;
-    --muted:        #94a3b8;
-  }
-
   display: grid;
   grid-template-columns: 220px 1fr;
   min-height: 100vh;
@@ -166,7 +155,6 @@
 // ── Stats row ─────────────────────────────────────────────────────────────────
 
 .stats-row {
-
   display: grid; grid-template-columns: repeat(4, 1fr);
   border: 1px solid var(--border);
   position: relative;
@@ -403,8 +391,7 @@ table.payments {
 
   .topbar-right {
     width: 100%;
-
-  display: grid;
+    display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
   }

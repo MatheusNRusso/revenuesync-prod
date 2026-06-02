@@ -9,8 +9,6 @@ import { PublicProfileService }  from '../../core/services/public-profile.servic
 import { PublicMerchant }        from '../../core/models/discover/public-merchant.model';
 import { PublicProfile, ProfileCategory, CATEGORY_LABELS } from '../../core/models/discover/public-profile.model';
 
-import { ThemeService } from '../../core/services/theme.service';
-
 type MerchantSource = 'LIVE' | 'FEATURED';
 
 interface FeaturedMerchant {
@@ -106,7 +104,6 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   constructor(
     public  readonly router:               Router,
     public  readonly authService:          AuthService,
-    public  readonly themeService: ThemeService,
     private readonly discoverService:      DiscoverService,
     private readonly publicProfileService: PublicProfileService,
     private readonly cdr:                  ChangeDetectorRef,
@@ -323,13 +320,5 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     let h = 0;
     for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;
     return h;
-  }
-
-  get isDark(): boolean {
-    return this.themeService.isDark;
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggle();
   }
 }

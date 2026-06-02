@@ -53,7 +53,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/public/merchants/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/public/profiles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/solana/status/**").permitAll()
-                        .requestMatchers("/mock/**").permitAll()
                         .requestMatchers("/api/solana/payment/**").authenticated()
                         .requestMatchers("/api/payments/**", "/api/conversions/**").hasRole("ADMIN")
                         .requestMatchers("/api/me/**").authenticated()
