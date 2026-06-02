@@ -242,4 +242,16 @@ public class MeController {
                 .toList();
         return ResponseEntity.ok(purchases);
     }
+
+    // ── Account management ───────────────────────────────────────────────────
+    @DeleteMapping("/account")
+    public ResponseEntity<Void> deleteAccount(
+            @AuthenticationPrincipal User user
+    ) {
+        var managed = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        managed.deactivate();
+        userRepository.save(managed);
+        return ResponseEntity.noContent().build();
+    }
 }
