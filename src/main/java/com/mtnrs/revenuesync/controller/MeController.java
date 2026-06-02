@@ -114,6 +114,37 @@ public class MeController {
         ));
     }
 
+    // ── Merchant CRUD ─────────────────────────────────────────────────────────
+    @PostMapping("/merchant-profile")
+    public ResponseEntity<?> createMerchantProfile(
+            @AuthenticationPrincipal User user,
+            @RequestBody CreateMerchantProfileRequest request
+    ) {
+        try {
+            MerchantProfileResponse response =
+                    merchantProfileService.createMerchantProfile(user, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @PutMapping("/merchants/{merchantId}/wallet")
+    public ResponseEntity<?> updateWallet(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long merchantId,
+            @RequestBody Map<String, String> body
+    ) {
+        try {
+            MerchantProfileResponse response = merchantProfileService.updateWalletAddress(
+                    user, merchantId, body.get("walletAddress")
+            );
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
     // ── Payments ──────────────────────────────────────────────────────────────
 
     @GetMapping("/payments")
