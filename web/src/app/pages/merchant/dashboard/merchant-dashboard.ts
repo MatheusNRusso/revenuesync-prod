@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { ThemeService } from '../../../core/services/theme.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,6 +26,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly themeService = inject(ThemeService);
 
   profile: MeProfileResponse | null = null;
   dashboard: MeDashboard | null = null;
@@ -53,14 +55,16 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   merchantCreateError: string | null = null;
   merchantCreateSuccess: string | null = null;
 
-  isDark = true;
-
   paymentsChartLabels: string[] = [];
   paymentsChartData: number[] = [];
   revenueChartLabels: string[] = [];
   revenueChartData: number[] = [];
 
   ngOnInit(): void {
+    this.themeService.isDark$.subscribe(dark => {
+      this.isDark = dark;
+      this.cdr.detectChanges();
+    });
     this.loadProfile();
   }
 
@@ -388,16 +392,32 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
+  deleteAccount(): void {
+    if (!confirm("Are you sure you want to deactivate your account? You will be logged out immediately.")) return;
+    this.meService.deleteAccount().subscribe({
+      next: () => this.authService.logout(),
+      error: () => { this.error = "Failed to deactivate account."; this.cdr.detectChanges(); }
+    });
+  }
+
+  deactivateMerchant(merchant: MerchantDashboardSummary, event: Event): void {
+    event.stopPropagation();
+    if (!confirm(`Deactivate merchant "${merchant.name}"? This will hide it from the public marketplace.`)) return;
+    this.meService.deactivateMerchant(merchant.id).subscribe({
+      next: () => this.loadProfile(),
+      error: () => { this.error = "Failed to deactivate merchant."; this.cdr.detectChanges(); }
+    });
+  }
+
   statusClass(status: string): string {
     return status.toLowerCase();
   }
 
-  setTheme(dark: boolean): void {
-    this.isDark = dark;
-    document.body.style.background = dark ? '#080c14' : '#f1f5f9';
-    this.cdr.detectChanges();
-  }
+  isDark = this.themeService.isDark;
 
+  toggleTheme(): void {
+    this.themeService.toggle();
+  }
   formatAmount(amount: number, currency: string): string {
     if (currency === 'SOL') {
       return `◎ ${amount.toFixed(6)}`;
