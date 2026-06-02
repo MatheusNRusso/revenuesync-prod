@@ -142,4 +142,8 @@ export class MeService {
   deleteMerchant(merchantId: number): Observable<void> {
     return this.http.delete<void>(`/api/me/merchants/${merchantId}`);
   }
+
+  deleteAccount(): Observable<void> {
+    return this.http.delete<void>("/api/me/account");
+  }
 }

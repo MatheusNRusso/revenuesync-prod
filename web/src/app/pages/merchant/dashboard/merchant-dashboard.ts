@@ -388,6 +388,14 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
+  deleteAccount(): void {
+    if (!confirm("Deactivate your account? You will be logged out immediately.")) return;
+    this.meService.deleteAccount().subscribe({
+      next: () => this.authService.logout(),
+      error: () => { this.error = "Failed to deactivate account."; this.cdr.detectChanges(); }
+    });
+  }
+
   activateMerchant(merchant: MerchantDashboardSummary, event: Event): void {
     event.stopPropagation();
     this.meService.activateMerchant(merchant.id).subscribe({
