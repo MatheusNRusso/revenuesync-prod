@@ -2253,3 +2253,65 @@
 @media (max-width: 640px) {
   .profile-panel { width: 100%; }
 }
+
+// ── Theme toggle ──────────────────────────────────────────────────────────
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: transparent;
+  flex-shrink: 0;
+
+  button {
+    padding: 6px 10px;
+    font-size: 10px;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+    transition: color 0.15s, background 0.15s;
+
+    &.active {
+      background: rgba(0, 212, 170, 0.08);
+      color: #00d4aa;
+    }
+
+    &:not(.active):hover {
+      color: var(--text);
+    }
+  }
+}
+
+// ── Light mode overrides ──────────────────────────────────────────────────
+.discover-page {
+  &.light-page {
+    --bg:         #f1f5f9;
+    --surface:    #ffffff;
+    --surface-2:  #f8fafc;
+    --surface-3:  #f1f5f9;
+    --border:     #e2e8f0;
+    --text:       #0f172a;
+    --text-dim:   #475569;
+    --muted:      #94a3b8;
+    --card-bg:    #ffffff;
+
+    background: var(--bg);
+    color: var(--text);
+
+    .discover-nav,
+    .section-meta {
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .discover-footer {
+      background: rgba(241, 245, 249, 0.8);
+    }
+  }
+}
