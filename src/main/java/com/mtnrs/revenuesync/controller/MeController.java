@@ -31,13 +31,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MeController {
 
-    private final PaymentRepository       paymentRepository;
-    private final PaymentMapper           paymentMapper;
-    private final MerchantRepository      merchantRepository;
-    private final MerchantProfileService  merchantProfileService;
+    private final PaymentRepository paymentRepository;
+    private final PaymentMapper paymentMapper;
+    private final MerchantRepository merchantRepository;
+    private final MerchantProfileService merchantProfileService;
     private final SolanaPaymentRepository solanaPaymentRepository;
-    private final UserRepository          userRepository;
-    private final PublicProfileService    publicProfileService;
+    private final UserRepository userRepository;
+    private final PublicProfileService publicProfileService;
 
     // ── Public profile ────────────────────────────────────────────────────────
 
@@ -74,27 +74,27 @@ public class MeController {
 
         var merchantSummaries = merchants.stream()
                 .map(merchant -> {
-                    var totalPayments    = paymentRepository.countByMerchant(merchant);
-                    var totalRevenue     = paymentRepository.sumSucceededAmountByMerchant(merchant);
-                    var totalRevenueSol  = paymentRepository.sumSucceededAmountByMerchantAndCurrency(merchant, "SOL");
+                    var totalPayments = paymentRepository.countByMerchant(merchant);
+                    var totalRevenue = paymentRepository.sumSucceededAmountByMerchant(merchant);
+                    var totalRevenueSol = paymentRepository.sumSucceededAmountByMerchantAndCurrency(merchant, "SOL");
 
                     return Map.<String, Object>of(
-                            "id",              merchant.getId(),
-                            "name",            merchant.getName(),
-                            "email",           merchant.getEmail(),
-                            "slug",            merchant.getSlug(),
-                            "walletAddress",   merchant.getWalletAddress(),
-                            "active",          merchant.isActive(),
-                            "totalPayments",   totalPayments,
-                            "totalRevenue",    totalRevenue    != null ? totalRevenue    : BigDecimal.ZERO,
+                            "id", merchant.getId(),
+                            "name", merchant.getName(),
+                            "email", merchant.getEmail(),
+                            "slug", merchant.getSlug(),
+                            "walletAddress", merchant.getWalletAddress(),
+                            "active", merchant.isActive(),
+                            "totalPayments", totalPayments,
+                            "totalRevenue", totalRevenue != null ? totalRevenue : BigDecimal.ZERO,
                             "totalRevenueSol", totalRevenueSol != null ? totalRevenueSol : BigDecimal.ZERO
                     );
                 })
                 .toList();
 
-        var totalPayments   = merchantSummaries.stream()
+        var totalPayments = merchantSummaries.stream()
                 .mapToLong(s -> ((Number) s.get("totalPayments")).longValue()).sum();
-        var totalRevenue    = merchantSummaries.stream()
+        var totalRevenue = merchantSummaries.stream()
                 .map(s -> (BigDecimal) s.get("totalRevenue"))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         var totalRevenueSol = merchantSummaries.stream()
@@ -102,16 +102,47 @@ public class MeController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return ResponseEntity.ok(Map.of(
-                "userId",          user.getId(),
-                "name",            user.getName(),
-                "email",           user.getEmail(),
-                "hasMerchants",    !merchants.isEmpty(),
-                "totalMerchants",  merchants.size(),
-                "totalPayments",   totalPayments,
-                "totalRevenue",    totalRevenue,
+                "userId", user.getId(),
+                "name", user.getName(),
+                "email", user.getEmail(),
+                "hasMerchants", !merchants.isEmpty(),
+                "totalMerchants", merchants.size(),
+                "totalPayments", totalPayments,
+                "totalRevenue", totalRevenue,
                 "totalRevenueSol", totalRevenueSol,
-                "merchants",       merchantSummaries
+                "merchants", merchantSummaries
         ));
+    }
+
+    // ── Merchant CRUD ─────────────────────────────────────────────────────────
+    @PostMapping("/merchant-profile")
+    public ResponseEntity<?> createMerchantProfile(
+            @AuthenticationPrincipal User user,
+            @RequestBody CreateMerchantProfileRequest request
+    ) {
+        try {
+            MerchantProfileResponse response =
+                    merchantProfileService.createMerchantProfile(user, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @PutMapping("/merchants/{merchantId}/wallet")
+    public ResponseEntity<?> updateWallet(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long merchantId,
+            @RequestBody Map<String, String> body
+    ) {
+        try {
+            MerchantProfileResponse response = merchantProfileService.updateWalletAddress(
+                    user, merchantId, body.get("walletAddress")
+            );
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
     }
 
     // ── Payments ──────────────────────────────────────────────────────────────
@@ -158,17 +189,39 @@ public class MeController {
                             .map(m -> m.getName())
                             .orElse("Unknown merchant");
                     return Map.<String, Object>of(
-                            "reference",    payment.getReference(),
-                            "merchantId",   payment.getMerchantId(),
+                            "reference", payment.getReference(),
+                            "merchantId", payment.getMerchantId(),
                             "merchantName", merchantName,
-                            "amount",       payment.getAmount().toPlainString(),
-                            "currency",     payment.getCurrency(),
-                            "status",       payment.getStatus().name(),
-                            "createdAt",    payment.getCreatedAt() != null ? payment.getCreatedAt().toString() : "",
-                            "confirmedAt",  payment.getConfirmedAt() != null ? payment.getConfirmedAt().toString() : ""
+                            "amount", payment.getAmount().toPlainString(),
+                            "currency", payment.getCurrency(),
+                            "status", payment.getStatus().name(),
+                            "createdAt", payment.getCreatedAt() != null ? payment.getCreatedAt().toString() : "",
+                            "confirmedAt", payment.getConfirmedAt() != null ? payment.getConfirmedAt().toString() : ""
                     );
                 })
                 .toList();
         return ResponseEntity.ok(purchases);
     }
+    // ── Account management ──────────────────────────────────────────────────────
+
+    @DeleteMapping("/account")
+    public ResponseEntity<Void> deleteAccount(
+            @AuthenticationPrincipal User user
+    ) {
+        var managed = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        managed.deactivate();
+        userRepository.save(managed);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/merchants/{merchantId}")
+    public ResponseEntity<Void> deleteMerchant(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long merchantId
+    ) {
+        merchantProfileService.deactivateMerchant(user, merchantId);
+        return ResponseEntity.noContent().build();
+    }
 }
+

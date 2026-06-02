@@ -46,6 +46,13 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean onboardingCompleted = false;
 
+    @Column(name = "active", nullable = false)
+    @Builder.Default
+    private boolean active = true;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -71,6 +78,15 @@ public class User implements UserDetails {
      */
     public void completeOnboarding() {
         this.onboardingCompleted = true;
+
+    }
+    /**
+     * Soft-deletes the account. Prevents login via Spring Security isEnabled() check.
+     * Idempotent — safe to call multiple times.
+     */
+    public void deactivate() {
+        this.active = false;
+        this.deletedAt = java.time.LocalDateTime.now();
     }
 
     // ── JPA hooks ─────────────────────────────────────────────────────────────
@@ -96,5 +112,5 @@ public class User implements UserDetails {
     @Override public boolean  isAccountNonExpired()      { return true; }
     @Override public boolean  isAccountNonLocked()       { return true; }
     @Override public boolean  isCredentialsNonExpired()  { return true; }
-    @Override public boolean  isEnabled()                { return true; }
+    @Override public boolean  isEnabled()                { return this.active; }
 }

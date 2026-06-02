@@ -19,59 +19,52 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
-    private final UserRepository userRepository;
-    private final GitHubOAuthService gitHubOAuthService;
-    private final PasswordEncoder passwordEncoder;
-    private final String frontendUrl;
-
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
-                          UserRepository userRepository,
-                          GitHubOAuthService gitHubOAuthService,
-                          PasswordEncoder passwordEncoder,
-                          @org.springframework.beans.factory.annotation.Value("${app.frontend-url}") String frontendUrl) {
-        this.jwtAuthFilter  = jwtAuthFilter;
-        this.userRepository = userRepository;
-        this.gitHubOAuthService = gitHubOAuthService;
-        this.passwordEncoder = passwordEncoder;
-        this.frontendUrl    = frontendUrl;
-    }
+    private final JwtAuthFilter       jwtAuthFilter;
+    private final UserRepository      userRepository;
+    private final GitHubOAuthService  gitHubOAuthService;
+    private final PasswordEncoder     passwordEncoder;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Auth
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
-                        .requestMatchers("/api/solana/transaction-request/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/auth/validate").authenticated()
+                        // OAuth2
                         .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth/validate").authenticated()
+                        // Public merchants
                         .requestMatchers(HttpMethod.GET, "/api/public/merchants/**").permitAll()
+                        // Public developer profiles
                         .requestMatchers(HttpMethod.GET, "/api/public/profiles/**").permitAll()
+                        // Solana
+                        .requestMatchers("/api/solana/transaction-request/**").permitAll()
+                        .requestMatchers("/mock/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/solana/status/**").permitAll()
                         .requestMatchers("/api/solana/payment/**").authenticated()
+                        // Admin
                         .requestMatchers("/api/payments/**", "/api/conversions/**").hasRole("ADMIN")
+                        // Authenticated
                         .requestMatchers("/api/me/**").authenticated()
                         .requestMatchers("/api/discover/**", "/api/public/pay/**").authenticated()
-                        .anyRequest().authenticated())
+                        .anyRequest().authenticated()
+                )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(auth -> auth
                                 .baseUri("/oauth2/authorization")
                         )
                         .successHandler((request, response, authentication) -> {
                             String jwt = gitHubOAuthService.handleOAuthSuccess(authentication);
-                            String redirectUrl = frontendUrl + "/oauth2/callback?token=" + jwt;
-                            response.setContentType("text/html");
-                            response.getWriter().write(
-                                "<html><body><script>window.location.href='" + redirectUrl + "'</script></body></html>"
-                            );
+                            response.sendRedirect("http://localhost:4200/oauth2/callback?token=" + jwt);
                         })
                         .failureHandler((request, response, exception) -> {
-                            response.sendRedirect(frontendUrl + "/login?error=oauth2");
+                            response.sendRedirect("http://localhost:4200/login?error=oauth2");
                         })
                 )
                 .exceptionHandling(ex -> ex
