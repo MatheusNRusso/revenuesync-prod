@@ -248,7 +248,11 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
     setTimeout(() => { this.copied = false; this.cdr.detectChanges(); }, 2000);
   }
 
-  openInWallet(): void { window.location.href = this.solanaPayUrl; }
+  openInWallet(): void {
+    const encoded = encodeURIComponent(this.solanaPayUrl);
+    const phantomUrl = `https://phantom.app/ul/v1/browse/${encoded}?ref=${encodeURIComponent(window.location.href)}`;
+    window.location.href = phantomUrl;
+  }
 
   reset(): void {
     this.pollSub?.unsubscribe();
