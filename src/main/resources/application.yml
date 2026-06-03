@@ -52,3 +52,7 @@ ml:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:4200}
+
+resend:
+  api-key: ${RESEND_API_KEY:re_placeholder}
+  from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
