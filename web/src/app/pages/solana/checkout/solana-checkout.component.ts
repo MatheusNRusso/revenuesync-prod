@@ -249,15 +249,8 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
   }
 
   openInWallet(): void {
-    // Parse solana pay URL and open Phantom universal link
-    const url = new URL(this.solanaPayUrl);
-    const to = url.pathname;
-    const amount = url.searchParams.get("amount") ?? "";
-    const reference = url.searchParams.get("reference") ?? "";
-    const phantomUrl = `https://phantom.app/ul/v1/transfer?to=${to}&amount=${amount}&reference=${reference}&network=mainnet-beta`;
-    window.location.href = phantomUrl;
+    window.open(this.solanaPayUrl, "_blank");
   }
-
   reset(): void {
     this.pollSub?.unsubscribe();
     this.timerSub?.unsubscribe();
