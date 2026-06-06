@@ -227,13 +227,6 @@
               [style.background]="getCategoryColor(m) + '14'">
               {{ m.source === 'LIVE' ? 'LIVE NETWORK' : m.category }}
             </span>
-            @if (m.source === 'LIVE') {
-              <button class="btn-pay-now" type="button" (click)="onPayNow(m.slug); $event.stopPropagation()">
-                <span>◎</span> Pay Now →
-              </button>
-            } @else {
-              <button class="btn-pay-now showcase-disabled" type="button" disabled>Showcase</button>
-            }
           </div>
         </div>
       }
