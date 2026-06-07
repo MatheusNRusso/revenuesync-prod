@@ -74,6 +74,18 @@ public class PublicController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/merchants/id/{id}")
+    public ResponseEntity<Map<String, Object>> getMerchantById(@PathVariable Long id) {
+        return merchantRepository.findById(id)
+                .map(m -> ResponseEntity.ok(Map.<String, Object>of(
+                        "id",          m.getId(),
+                        "name",        m.getName(),
+                        "slug",        m.getSlug(),
+                        "description", m.getDescription() != null ? m.getDescription() : "",
+                        "avatarUrl",   m.getAvatarUrl()   != null ? m.getAvatarUrl()   : ""
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
     @PostMapping("/pay/{slug}")
     public ResponseEntity<CreatePaymentResponse> pay(
             @PathVariable String slug,
