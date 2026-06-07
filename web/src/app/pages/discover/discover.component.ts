@@ -173,6 +173,10 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   onMerchantDetail(merchantId: number): void {
+
+  onMerchantDetailFromString(merchantId: string): void {
+    this.onMerchantDetail(Number(merchantId));
+  }
     this.router.navigate(['/merchant', merchantId]);
   }
 

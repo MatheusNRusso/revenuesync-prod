@@ -180,7 +180,7 @@
           [class.live-merchant-card]="m.source === 'LIVE'"
           [class.featured-merchant-card]="m.source === 'FEATURED'"
           [style.--cat-color]="getCategoryColor(m)"
-          (click)="onMerchantDetail(Number(m.id))"
+          (click)="onMerchantDetailFromString(m.id)"
           style="cursor:pointer;">
           <div class="card-glow"></div>
           <div class="scan-line"></div>
