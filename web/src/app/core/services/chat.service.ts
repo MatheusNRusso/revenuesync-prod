@@ -1,0 +1,39 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { ConversationResponse, ChatMessageResponse } from '../models/merchant-detail.model';
+
+@Injectable({ providedIn: 'root' })
+export class ChatApiService {
+
+  private readonly baseUrl = `${environment.apiUrl}/api/chats`;
+
+  constructor(private readonly http: HttpClient) {}
+
+  startConversation(merchantId: number): Observable<ConversationResponse> {
+    return this.http.post<ConversationResponse>(`${this.baseUrl}/start`, { merchantId });
+  }
+
+  getMyConversations(): Observable<ConversationResponse[]> {
+    return this.http.get<ConversationResponse[]>(this.baseUrl);
+  }
+
+  getMessages(conversationId: number): Observable<ChatMessageResponse[]> {
+    return this.http.get<ChatMessageResponse[]>(`${this.baseUrl}/${conversationId}/messages`);
+  }
+
+  sendMessage(conversationId: number, content: string): Observable<ChatMessageResponse> {
+    return this.http.post<ChatMessageResponse>(
+      `${this.baseUrl}/${conversationId}/messages`, { content }
+    );
+  }
+
+  markAsRead(conversationId: number): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${conversationId}/read`, {});
+  }
+
+  closeConversation(conversationId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${conversationId}`);
+  }
+}

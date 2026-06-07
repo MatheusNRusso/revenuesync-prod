@@ -2,9 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PublicProfile } from '../models/discover/public-profile.model';
+import { MerchantDetail } from '../models/merchant-detail.model';
 
 @Injectable({ providedIn: 'root' })
 export class PublicProfileService {
+
   private readonly publicUrl = '/api/public/profiles';
   private readonly meUrl     = '/api/me/public-profile';
 
@@ -21,6 +23,10 @@ export class PublicProfileService {
 
   getProfileBySlug(slug: string): Observable<PublicProfile> {
     return this.http.get<PublicProfile>(`${this.publicUrl}/${slug}`);
+  }
+
+  getMerchantDetail(merchantId: number): Observable<MerchantDetail> {
+    return this.http.get<MerchantDetail>(`/api/merchants/${merchantId}`);
   }
 
   // ── Authenticated ─────────────────────────────────────────────────────────

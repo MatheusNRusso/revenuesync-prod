@@ -120,5 +120,11 @@ export const routes: Routes = [
         .then(m => m.DiscoverComponent)
   },
 
+  {
+    path: 'merchant/:id',
+    loadComponent: () =>
+      import('./pages/merchant-detail/merchant-detail').then(m => m.MerchantDetailComponent),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: '' }
 ];

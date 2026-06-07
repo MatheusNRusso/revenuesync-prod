@@ -1,0 +1,271 @@
+.merchant-detail-page {
+  min-height: 100vh;
+  background: var(--color-bg-primary, #0a0e27);
+  color: var(--color-text-primary, #e0e0e0);
+}
+
+.detail-nav {
+  background: var(--color-bg-secondary, #111827);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.125rem;
+
+    .logo-mark {
+      width: 24px;
+      height: 24px;
+      background: var(--color-accent, #10b981);
+      border-radius: 4px;
+    }
+
+    b { color: var(--color-accent, #10b981); }
+  }
+
+  .btn-back {
+    background: none;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--color-accent, #10b981);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: var(--color-accent, #10b981);
+      background: rgba(16, 185, 129, 0.1);
+    }
+  }
+}
+
+.detail-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.state-loading, .state-error {
+  text-align: center;
+  padding: 3rem;
+  font-family: 'Courier New', monospace;
+  color: var(--color-accent, #10b981);
+
+  .accent { color: var(--color-accent, #10b981); font-weight: bold; }
+}
+
+.merchant-header {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: var(--color-bg-secondary, #111827);
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+
+  .merchant-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid var(--color-accent, #10b981);
+
+    &.merchant-avatar-initials {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      font-weight: bold;
+      font-size: 2rem;
+      color: var(--color-accent, #10b981);
+    }
+  }
+
+  .merchant-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .merchant-name {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .merchant-desc {
+      margin: 0 0 1.5rem 0;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+  }
+
+  .btn-pay-primary {
+    align-self: flex-start;
+    background: var(--color-accent, #10b981);
+    color: var(--color-bg-primary, #0a0e27);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+  }
+}
+
+.chat-section {
+  background: var(--color-bg-secondary, #111827);
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+
+  .chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+
+    h2 {
+      margin: 0;
+      font-size: 1.125rem;
+      color: var(--color-accent, #10b981);
+      font-family: 'Courier New', monospace;
+    }
+
+    .online-badge {
+      font-size: 0.875rem;
+      color: #10b981;
+    }
+  }
+
+  .messages-area {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding-right: 0.5rem;
+
+    .message {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(16, 185, 129, 0.05);
+      border-left: 2px solid rgba(16, 185, 129, 0.3);
+      border-radius: 4px;
+
+      &.own {
+        margin-left: 2rem;
+        background: rgba(16, 185, 129, 0.15);
+        border-left-color: var(--color-accent, #10b981);
+      }
+
+      .sender-name {
+        font-weight: bold;
+        color: var(--color-accent, #10b981);
+        font-size: 0.875rem;
+      }
+
+      .message-content {
+        margin: 0.5rem 0 0 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .timestamp {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        opacity: 0.6;
+      }
+    }
+  }
+
+  .chat-input-area {
+    display: flex;
+    gap: 0.5rem;
+
+    .chat-input {
+      flex: 1;
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--color-text-primary, #e0e0e0);
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-family: inherit;
+      resize: none;
+      max-height: 80px;
+
+      &:focus {
+        outline: none;
+        border-color: var(--color-accent, #10b981);
+        background: rgba(16, 185, 129, 0.1);
+      }
+    }
+
+    .btn-send {
+      background: var(--color-accent, #10b981);
+      color: var(--color-bg-primary, #0a0e27);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+      white-space: nowrap;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .merchant-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    .merchant-info {
+      align-items: center;
+    }
+
+    .btn-pay-primary {
+      align-self: center;
+    }
+  }
+
+  .chat-section {
+    height: 400px;
+  }
+}
