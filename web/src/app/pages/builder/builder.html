@@ -107,7 +107,7 @@
           <span class="section-label">[ services ]</span>
           <div class="services-grid">
             @for (merchant of profile.merchants; track merchant.id) {
-              <div class="service-card">
+              <div class="service-card" (click)="onServiceDetail(merchant.id)" style="cursor: pointer;">
                 <div class="service-header">
                   @if (merchant.avatarUrl) {
                     <img class="service-avatar" [src]="merchant.avatarUrl" [alt]="merchant.name" />
@@ -124,11 +124,11 @@
                 @if (merchant.description) {
                   <p class="service-desc">{{ merchant.description }}</p>
                 }
-                <div class="service-card-wrapper" (click)="onServiceDetail(merchant.id)">
+                <!-- <div class="service-card-wrapper" (click)="onServiceDetail(merchant.id)">
                   <button class="btn-pay" (click)="onPayNow(merchant.slug); $event.stopPropagation()">
                     <span>◎</span> Pay with Solana →
                   </button>
-                </div>
+                </div> -->
               </div>
             }
           </div>
