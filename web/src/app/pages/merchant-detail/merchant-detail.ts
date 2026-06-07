@@ -5,12 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { PublicProfileService } from '../../core/services/public-profile.service';
 import { ChatApiService } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
-import { MerchantDetail, ConversationResponse, ChatMessageResponse } from '../../core/models/merchant-detail.model';
+import { ChatComponent } from '../../shared/components/chat/chat.component';
+import { MerchantDetail, ConversationResponse } from '../../core/models/merchant-detail.model';
 
 @Component({
   selector: 'app-merchant-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ChatComponent],
   templateUrl: './merchant-detail.html',
   styleUrls: ['./merchant-detail.scss']
 })
@@ -19,11 +20,8 @@ export class MerchantDetailComponent implements OnInit {
   loading = true;
   error: string | null = null;
   merchant: MerchantDetail | null = null;
-
   conversation: ConversationResponse | null = null;
-  messages: ChatMessageResponse[] = [];
-  newMessage = '';
-  chatLoading = false;
+  currentUserId: number | null = null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -41,6 +39,7 @@ export class MerchantDetailComponent implements OnInit {
       return;
     }
 
+    this.currentUserId = this.authService.getCurrentUserId();
     this.loadMerchantDetail(Number(merchantId));
   }
 
@@ -66,39 +65,10 @@ export class MerchantDetailComponent implements OnInit {
     this.chatService.startConversation(merchantId).subscribe({
       next: (conv) => {
         this.conversation = conv;
-        this.loadMessages();
         this.cdr.detectChanges();
       },
       error: () => {
         this.error = 'Failed to start conversation.';
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  private loadMessages(): void {
-    if (!this.conversation) return;
-    this.chatService.getMessages(this.conversation.id).subscribe({
-      next: (msgs) => {
-        this.messages = msgs;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  sendMessage(): void {
-    if (!this.conversation || !this.newMessage.trim()) return;
-
-    this.chatLoading = true;
-    this.chatService.sendMessage(this.conversation.id, this.newMessage).subscribe({
-      next: (msg) => {
-        this.messages.push(msg);
-        this.newMessage = '';
-        this.chatLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.chatLoading = false;
         this.cdr.detectChanges();
       }
     });

@@ -29,8 +29,8 @@
 
       <!-- Merchant Header -->
       <div class="merchant-header">
-        @if (merchant.avatarUrl) {
-          <img class="merchant-avatar" [src]="merchant.avatarUrl" [alt]="merchant.name" />
+        @if (merchant.userGithubAvatarUrl) {
+          <img class="merchant-avatar" [src]="merchant.userGithubAvatarUrl" [alt]="merchant.name" />
         } @else {
           <div class="merchant-avatar merchant-avatar-initials">
             {{ merchant.name.slice(0, 2).toUpperCase() }}
@@ -45,39 +45,11 @@
         </div>
       </div>
 
-      <!-- Chat Section -->
-      @if (conversation) {
-        <div class="chat-section">
-          <div class="chat-header">
-            <h2>[ contact ]</h2>
-            <span class="online-badge">🟢 Online</span>
-          </div>
-          <div class="messages-area">
-            @for (msg of messages; track msg.id) {
-              <div class="message" [class.own]="msg.senderId === conversation.buyerId">
-                <span class="sender-name">{{ msg.senderName }}</span>
-                <p class="message-content">{{ msg.content }}</p>
-                <span class="timestamp">{{ msg.createdAt | date:'short' }}</span>
-              </div>
-            }
-          </div>
-          <div class="chat-input-area">
-            <textarea 
-              [(ngModel)]="newMessage"
-              placeholder="Type your message..."
-              (keyup.enter)="sendMessage()"
-              [disabled]="chatLoading"
-              class="chat-input">
-            </textarea>
-            <button 
-              (click)="sendMessage()" 
-              [disabled]="!newMessage.trim() || chatLoading"
-              class="btn-send">
-              {{ chatLoading ? '...' : 'Send' }}
-            </button>
-          </div>
-        </div>
-      }
+      <!-- Chat Component -->
+      <app-chat
+        [conversation]="conversation"
+        [buyerId]="currentUserId">
+      </app-chat>
 
     }
   </div>

@@ -99,4 +99,15 @@ export class AuthService {
 
   isAdmin(): boolean { return this.getRole() === 'ADMIN'; }
   isUser():  boolean { return this.getRole() === 'USER';  }
+
+  getCurrentUserId(): number | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub ? parseInt(payload.sub, 10) : null;
+    } catch {
+      return null;
+    }
+  }
 }

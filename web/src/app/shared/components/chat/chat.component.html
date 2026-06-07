@@ -1,0 +1,41 @@
+@if (conversation) {
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>[ contact ]</h2>
+      <span class="online-badge" [class.connected]="connected">
+        {{ connected ? '🟢 Online' : '🔴 Offline' }}
+      </span>
+    </div>
+
+    <div class="messages-area">
+      @if (messages.length === 0) {
+        <div class="empty-state">
+          <p>No messages yet. Start the conversation!</p>
+        </div>
+      }
+      @for (msg of messages; track msg.id) {
+        <div class="message" [class.own]="msg.senderId === buyerId">
+          <span class="sender-name">{{ msg.senderName }}</span>
+          <p class="message-content">{{ msg.content }}</p>
+          <span class="timestamp">{{ msg.createdAt | date:'short' }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="chat-input-area">
+      <textarea
+        [(ngModel)]="newMessage"
+        placeholder="Type your message..."
+        (keyup.enter)="sendMessage()"
+        [disabled]="!connected || chatLoading"
+        class="chat-input">
+      </textarea>
+      <button
+        (click)="sendMessage()"
+        [disabled]="!newMessage.trim() || !connected || chatLoading"
+        class="btn-send">
+        {{ chatLoading ? '...' : 'Send' }}
+      </button>
+    </div>
+  </div>
+}
