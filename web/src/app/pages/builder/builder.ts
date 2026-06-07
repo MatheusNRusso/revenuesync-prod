@@ -56,6 +56,10 @@ export class BuilderComponent implements OnInit {
     }
   }
 
+  onServiceDetail(merchantId: number): void {
+    this.router.navigate(['/merchant', merchantId]);
+  }
+
   getCategoryLabel(category: string): string {
     return CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] ?? category;
   }

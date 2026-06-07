@@ -172,6 +172,10 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     }
   }
 
+  onMerchantDetail(merchantId: number): void {
+    this.router.navigate(['/merchant', merchantId]);
+  }
+
   getAvatarInitials(merchant: MarketplaceMerchant): string {
     const words = merchant.name.trim().split(/\s+/).filter(Boolean);
     if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();

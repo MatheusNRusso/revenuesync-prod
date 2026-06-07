@@ -179,7 +179,9 @@
           class="merchant-card marketplace-card"
           [class.live-merchant-card]="m.source === 'LIVE'"
           [class.featured-merchant-card]="m.source === 'FEATURED'"
-          [style.--cat-color]="getCategoryColor(m)">
+          [style.--cat-color]="getCategoryColor(m)"
+          (click)="onMerchantDetail(m.id)"
+          style="cursor:pointer;">
           <div class="card-glow"></div>
           <div class="scan-line"></div>
           <div class="card-top-row">
