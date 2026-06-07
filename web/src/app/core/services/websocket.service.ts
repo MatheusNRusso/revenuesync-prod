@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { environment } from '../../../environments/environment';
+
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
@@ -19,7 +19,7 @@ export class WebSocketService {
     }
 
     this.client = new Client({
-      webSocketFactory: () => new SockJS(`${environment.apiUrl}/ws/chat`),
+      webSocketFactory: () => new SockJS(`/ws/chat`),
       onConnect: () => {
         this.connected$.next(true);
       },
