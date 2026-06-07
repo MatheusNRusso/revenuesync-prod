@@ -26,7 +26,7 @@ export class PublicProfileService {
   }
 
   getMerchantDetail(merchantId: number): Observable<MerchantDetail> {
-    return this.http.get<MerchantDetail>(`/api/merchants/${merchantId}`);
+    return this.http.get<MerchantDetail>(`/api/public/merchants/id/${merchantId}`);
   }
 
   // ── Authenticated ─────────────────────────────────────────────────────────
