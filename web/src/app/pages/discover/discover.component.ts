@@ -20,6 +20,7 @@ interface MarketplaceMerchant {
   id: string; name: string; slug: string;
   description?: string; avatarUrl?: string;
   category: string; source: MerchantSource;
+  merchantId?: number; 
 }
 
 @Component({
@@ -228,7 +229,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   rebuildMarketplace(): void {
     const live: MarketplaceMerchant[] = this.liveMerchants.map((m) => ({
-      id: `live-${m.id}`, name: m.name, slug: m.slug,
+      id: `live-${m.id}`,merchantId: m.id, name: m.name, slug: m.slug,
       description: m.description || 'Accepting Solana Pay payments through RevenueSync.',
       avatarUrl: m.avatarUrl, category: 'Live Network', source: 'LIVE' as MerchantSource,
     }));
