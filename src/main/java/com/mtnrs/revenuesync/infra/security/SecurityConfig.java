@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/payments/**", "/api/conversions/**").hasRole("ADMIN")
                         .requestMatchers("/api/me/**").authenticated()
                         .requestMatchers("/api/discover/**", "/api/public/pay/**").authenticated()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/chats/**").authenticated()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(auth -> auth
