@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PublicProfileService } from '../../core/services/public-profile.service';
 import { ChatApiService } from '../../core/services/chat.service';
@@ -29,7 +30,8 @@ export class MerchantDetailComponent implements OnInit {
     private readonly publicProfileService: PublicProfileService,
     private readonly chatService: ChatApiService,
     private readonly authService: AuthService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private readonly location: Location
   ) {}
 
   ngOnInit(): void {
@@ -80,6 +82,6 @@ export class MerchantDetailComponent implements OnInit {
   }
 
   goToDiscover(): void {
-    this.router.navigate(['/discover']);
+    this.location.back();
   }
 }
