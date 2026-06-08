@@ -29,10 +29,21 @@
     font-size: 1.125rem;
 
     .logo-mark {
-      width: 24px;
-      height: 24px;
-      background: var(--color-accent, #10b981);
-      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid var(--color-accent, #10b981);
+      position: relative;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px rgba(0,212,170,0.3);
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        background: var(--color-accent, #10b981);
+        clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 50%, 50% 100%, 0 100%);
+
+      }
+
     }
 
     b { color: var(--color-accent, #10b981); }
