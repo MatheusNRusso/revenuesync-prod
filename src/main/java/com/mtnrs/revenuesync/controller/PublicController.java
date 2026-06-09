@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.mtnrs.revenuesync.domain.UserPublicProfile;
+import com.mtnrs.revenuesync.repository.UserPublicProfileRepository;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,8 @@ public class PublicController {
     private final LeadRepository       leadRepository;
     private final SolanaPayService     solanaPayService;
     private final PublicProfileService publicProfileService;
+
+    private final UserPublicProfileRepository userPublicProfileRepository;
 
     // ── Developer profiles ────────────────────────────────────────────────────
 
@@ -84,7 +89,7 @@ public class PublicController {
                         "description", m.getDescription() != null ? m.getDescription() : "",
                         "avatarUrl",   m.getAvatarUrl()   != null ? m.getAvatarUrl()   : "",
                         "userDisplayName",     m.getUser() != null && m.getUser().getName() != null ? m.getUser().getName() : "",
-                        "userGithubAvatarUrl", m.getUser() != null && m.getUser().getGithubAvatarUrl() != null ? m.getUser().getGithubAvatarUrl() : ""
+                        "userGithubAvatarUrl", m.getUser() != null ? userPublicProfileRepository.findByUserId(m.getUser().getId()).map(UserPublicProfile::getGithubAvatarUrl).orElse("") : ""
                 )))
                 .orElse(ResponseEntity.notFound().build());
     }
