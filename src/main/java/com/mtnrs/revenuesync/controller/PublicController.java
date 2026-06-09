@@ -91,7 +91,7 @@ public class PublicController {
                     map.put("avatarUrl",   m.getAvatarUrl()   != null ? m.getAvatarUrl()   : "");
                     map.put("userDisplayName",     m.getUser() != null && m.getUser().getName() != null ? m.getUser().getName() : "");
                     map.put("userGithubAvatarUrl", m.getUser() != null ? userPublicProfileRepository.findByUserId(m.getUser().getId()).map(UserPublicProfile::getGithubAvatarUrl).orElse("") : "");
-                    return ResponseEntity.ok(map);
+                    return ResponseEntity.ok((Map<String, Object>) map);
                     })
                 .orElse(ResponseEntity.notFound().build());
     }
