@@ -82,7 +82,9 @@ public class PublicController {
                         "name",        m.getName(),
                         "slug",        m.getSlug(),
                         "description", m.getDescription() != null ? m.getDescription() : "",
-                        "avatarUrl",   m.getAvatarUrl()   != null ? m.getAvatarUrl()   : ""
+                        "avatarUrl",   m.getAvatarUrl()   != null ? m.getAvatarUrl()   : "",
+                        "userDisplayName",     m.getUser() != null && m.getUser().getName() != null ? m.getUser().getName() : "",
+                        "userGithubAvatarUrl", m.getUser() != null && m.getUser().getGithubAvatarUrl() != null ? m.getUser().getGithubAvatarUrl() : ""
                 )))
                 .orElse(ResponseEntity.notFound().build());
     }
