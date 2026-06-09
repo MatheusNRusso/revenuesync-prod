@@ -82,15 +82,17 @@ public class PublicController {
     @GetMapping("/merchants/id/{id}")
     public ResponseEntity<Map<String, Object>> getMerchantById(@PathVariable Long id) {
         return merchantRepository.findById(id)
-                .map(m -> ResponseEntity.ok(Map.<String, Object>of(
-                        "id",          m.getId(),
-                        "name",        m.getName(),
-                        "slug",        m.getSlug(),
-                        "description", m.getDescription() != null ? m.getDescription() : "",
-                        "avatarUrl",   m.getAvatarUrl()   != null ? m.getAvatarUrl()   : "",
-                        "userDisplayName",     m.getUser() != null && m.getUser().getName() != null ? m.getUser().getName() : "",
-                        "userGithubAvatarUrl", m.getUser() != null ? userPublicProfileRepository.findByUserId(m.getUser().getId()).map(UserPublicProfile::getGithubAvatarUrl).orElse("") : ""
-                )))
+                .map(m -> {
+                    var map = new java.util.HashMap<String, Object>();
+                    map.put("id",          m.getId());
+                    map.put("name",        m.getName());
+                    map.put("slug",        m.getSlug()        != null ? m.getSlug()        : "");
+                    map.put("description", m.getDescription() != null ? m.getDescription() : "");
+                    map.put("avatarUrl",   m.getAvatarUrl()   != null ? m.getAvatarUrl()   : "");
+                    map.put("userDisplayName",     m.getUser() != null && m.getUser().getName() != null ? m.getUser().getName() : "");
+                    map.put("userGithubAvatarUrl", m.getUser() != null ? userPublicProfileRepository.findByUserId(m.getUser().getId()).map(UserPublicProfile::getGithubAvatarUrl).orElse("") : "");
+                    return ResponseEntity.ok(map);
+                    })
                 .orElse(ResponseEntity.notFound().build());
     }
     @PostMapping("/pay/{slug}")
