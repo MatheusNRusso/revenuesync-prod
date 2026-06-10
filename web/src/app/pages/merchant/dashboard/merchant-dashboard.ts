@@ -2,6 +2,12 @@ import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+
+// 1. Add inbox top
+import { ChatApiService } from '../../../core/services/chat.service';
+import { ChatComponent } from '../../../shared/components/chat/chat.component';
+import { ConversationResponse } from '../../../core/models/merchant-detail.model';
+
 import {
   CreateMerchantProfileRequest,
   MeDashboard,
@@ -16,7 +22,7 @@ import { ChartCardComponent } from '../../../shared/components/chart-card/chart-
 @Component({
   selector: 'app-merchant-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChartCardComponent],
+  imports: [CommonModule, FormsModule, ChartCardComponent, ChatComponent],
   templateUrl: './merchant-dashboard.html',
   styleUrls: ['./merchant-dashboard.scss']
 })
@@ -25,6 +31,8 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+
+  private readonly chatService = inject(ChatApiService);
 
   profile: MeProfileResponse | null = null;
   dashboard: MeDashboard | null = null;
@@ -49,6 +57,13 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   walletEditError: string | null = null;
   walletEditSuccess: string | null = null;
 
+  // ── Inbox ──────────────────────────────────────────────────────────────────
+  activeSection: 'dashboard' | 'inbox' = 'dashboard';
+  conversations: ConversationResponse[] = [];
+  selectedConversation: ConversationResponse | null = null;
+  conversationsLoading = false;
+  currentUserId: number | null = null;
+
   error: string | null = null;
   merchantCreateError: string | null = null;
   merchantCreateSuccess: string | null = null;
@@ -62,9 +77,10 @@ export class MerchantDashboard implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadProfile();
+    this.currentUserId = this.authService.getCurrentUserId();
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void { }
 
   loadProfile(): void {
     this.loading = true;
@@ -382,6 +398,41 @@ export class MerchantDashboard implements OnInit, OnDestroy {
 
   goTo(path: string): void {
     this.router.navigate([path]);
+  }
+
+  // ── Inbox ───────────────────────────────────────────────────────────────
+  showInbox(): void {
+    this.activeSection = 'inbox';
+    this.loadConversations();
+  }
+
+  showDashboard(): void {
+    this.activeSection = 'dashboard';
+    this.selectedConversation = null;
+  }
+
+  loadConversations(): void {
+    this.conversationsLoading = true;
+    this.chatService.getMyConversations().subscribe({
+      next: (convs) => {
+        this.conversations = convs;
+        this.conversationsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.conversationsLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  selectConversation(conv: ConversationResponse): void {
+    this.selectedConversation = conv;
+    this.cdr.detectChanges();
+  }
+
+  get unreadCount(): number {
+    return this.conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
   }
 
   logout(): void {

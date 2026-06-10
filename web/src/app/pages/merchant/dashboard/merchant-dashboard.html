@@ -9,45 +9,57 @@
     <nav class="sidebar-nav">
       <a class="sidebar-link" [class.active]="isActive('/merchant/dashboard')" (click)="goTo('/merchant/dashboard')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="3" width="7" height="9"/>
-          <rect x="14" y="3" width="7" height="5"/>
-          <rect x="14" y="12" width="7" height="9"/>
-          <rect x="3" y="16" width="7" height="5"/>
+          <rect x="3" y="3" width="7" height="9" />
+          <rect x="14" y="3" width="7" height="5" />
+          <rect x="14" y="12" width="7" height="9" />
+          <rect x="3" y="16" width="7" height="5" />
         </svg>
         <span>Dashboard</span>
       </a>
 
       <a class="sidebar-link" [class.active]="isActive('/merchant/payments')" (click)="goTo('/merchant/payments')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="2" y="6" width="20" height="13" rx="1"/>
-          <path d="M2 10h20M6 15h4"/>
+          <rect x="2" y="6" width="20" height="13" rx="1" />
+          <path d="M2 10h20M6 15h4" />
         </svg>
         <span>Payments</span>
       </a>
 
       <a class="sidebar-link" (click)="goTo('/discover')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="M21 21l-4.35-4.35"/>
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
         </svg>
         <span>Discover</span>
       </a>
 
       <a class="sidebar-link" (click)="goTo('/buyer/history')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          <path
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
         <span>My Purchases</span>
+      </a>
+
+      <a class="sidebar-link" (click)="showInbox()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+        <span>Inbox</span>
+        @if (unreadCount > 0) {
+        <span class="badge">{{ unreadCount }}</span>
+        }
       </a>
 
       <div class="sidebar-divider"></div>
       <div class="sidebar-section">/ payments</div>
 
-      <a class="sidebar-link solana-link" [class.active]="isActive('/solana/checkout')" (click)="merchants.length === 1 ? goToSolanaCheckout(merchants[0]) : goTo('/merchant/dashboard')">
+      <a class="sidebar-link solana-link" [class.active]="isActive('/solana/checkout')"
+        (click)="merchants.length === 1 ? goToSolanaCheckout(merchants[0]) : goTo('/merchant/dashboard')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="2" y="6" width="20" height="13" rx="1"/>
-          <path d="M2 10h20M6 15h4"/>
-          <circle cx="18" cy="15" r="2" fill="currentColor" stroke="none"/>
+          <rect x="2" y="6" width="20" height="13" rx="1" />
+          <path d="M2 10h20M6 15h4" />
+          <circle cx="18" cy="15" r="2" fill="currentColor" stroke="none" />
         </svg>
         <span>Solana Pay</span>
         <span class="badge sol-badge">SOL</span>
@@ -78,342 +90,382 @@
     </header>
 
     <main class="main">
+      @if (activeSection === 'inbox') {
+      <div class="inbox-section">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">[ inbox ]</span>
+            <h2>Conversations</h2>
+          </div>
+          <button class="ghost-action" (click)="showDashboard()">← Back to Dashboard</button>
+        </div>
+
+        @if (conversationsLoading) {
+        <div class="state-box">Loading conversations...</div>
+        }
+
+        @if (!conversationsLoading && conversations.length === 0) {
+        <div class="state-box">No conversations yet.</div>
+        }
+
+        <div class="inbox-layout">
+          <div class="conversations-list">
+            @for (conv of conversations; track conv.id) {
+            <div class="conv-item" [class.active]="selectedConversation?.id === conv.id"
+              (click)="selectConversation(conv)">
+              <div class="conv-name">{{ conv.buyerName }}</div>
+              <div class="conv-meta">{{ conv.merchantName }}</div>
+              @if (conv.unreadCount > 0) {
+              <span class="unread-badge">{{ conv.unreadCount }}</span>
+              }
+            </div>
+            }
+          </div>
+
+          <div class="conversation-chat">
+            @if (selectedConversation) {
+            <app-chat [conversation]="selectedConversation" [buyerId]="currentUserId">
+            </app-chat>
+            } @else {
+            <div class="state-box">Select a conversation to start chatting.</div>
+            }
+          </div>
+        </div>
+      </div>
+      }
+      
       @if (loading) {
-        <div class="state-box">Loading...</div>
+      <div class="state-box">Loading...</div>
       }
 
       @if (error) {
-        <div class="state-box error-state">{{ error }}</div>
+      <div class="state-box error-state">{{ error }}</div>
       }
 
       @if (!loading && !error && profile && showCreateMerchantForm) {
-        <div class="setup-card">
-          <div class="card-head">
-            <div class="card-title">
-              <span class="dot"></span>
-              <span class="id">/setup</span>
-              <span>· create merchant profile</span>
-            </div>
-
-            @if (profile.hasMerchants) {
-              <button class="ghost-action" type="button" (click)="toggleCreateMerchantForm()">
-                Cancel
-              </button>
-            }
+      <div class="setup-card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span class="id">/setup</span>
+            <span>· create merchant profile</span>
           </div>
 
-          <div class="setup-body">
-            <div class="setup-copy">
-              <h2>Configure your merchant wallet</h2>
-              <p>Create a merchant profile to receive Solana payments, generate checkout links, and track conversions from your dashboard.</p>
-            </div>
-
-            <div class="merchant-form">
-              <label>
-                <span>Business name</span>
-                <input type="text" [(ngModel)]="merchantForm.name" placeholder="Crypto Service" />
-              </label>
-
-              <label>
-                <span>Business email</span>
-                <input type="email" [(ngModel)]="merchantForm.email" placeholder="business@example.com" />
-              </label>
-
-              <label>
-                <span>Wallet address</span>
-                <input type="text" [(ngModel)]="merchantForm.walletAddress" placeholder="Your Solana wallet address" />
-              </label>
-
-              <label>
-                <span>Service price (SOL)</span>
-                <input type="number" [(ngModel)]="merchantForm.defaultAmountSol" placeholder="0.01 — leave blank for default" min="0.000000001" step="0.001" />
-              </label>
-
-              <label>
-                <span>Avatar URL</span>
-                <input type="text" [(ngModel)]="merchantForm.avatarUrl" placeholder="https://example.com/avatar.png" />
-              </label>
-
-              <label class="full">
-                <span>Description</span>
-                <input type="text" [(ngModel)]="merchantForm.description" placeholder="Describe your service" />
-              </label>
-            </div>
-
-            @if (merchantCreateError) {
-              <div class="state-box error-state">{{ merchantCreateError }}</div>
-            }
-
-            @if (merchantCreateSuccess) {
-              <div class="state-box success-state">{{ merchantCreateSuccess }}</div>
-            }
-
-            <button class="primary-action" type="button" (click)="createMerchant()" [disabled]="creatingMerchant">
-              {{ creatingMerchant ? 'Creating...' : 'Create merchant profile' }}
-            </button>
-          </div>
+          @if (profile.hasMerchants) {
+          <button class="ghost-action" type="button" (click)="toggleCreateMerchantForm()">
+            Cancel
+          </button>
+          }
         </div>
+
+        <div class="setup-body">
+          <div class="setup-copy">
+            <h2>Configure your merchant wallet</h2>
+            <p>Create a merchant profile to receive Solana payments, generate checkout links, and track conversions from
+              your dashboard.</p>
+          </div>
+
+          <div class="merchant-form">
+            <label>
+              <span>Business name</span>
+              <input type="text" [(ngModel)]="merchantForm.name" placeholder="Crypto Service" />
+            </label>
+
+            <label>
+              <span>Business email</span>
+              <input type="email" [(ngModel)]="merchantForm.email" placeholder="business@example.com" />
+            </label>
+
+            <label>
+              <span>Wallet address</span>
+              <input type="text" [(ngModel)]="merchantForm.walletAddress" placeholder="Your Solana wallet address" />
+            </label>
+
+            <label>
+              <span>Service price (SOL)</span>
+              <input type="number" [(ngModel)]="merchantForm.defaultAmountSol"
+                placeholder="0.01 — leave blank for default" min="0.000000001" step="0.001" />
+            </label>
+
+            <label>
+              <span>Avatar URL</span>
+              <input type="text" [(ngModel)]="merchantForm.avatarUrl" placeholder="https://example.com/avatar.png" />
+            </label>
+
+            <label class="full">
+              <span>Description</span>
+              <input type="text" [(ngModel)]="merchantForm.description" placeholder="Describe your service" />
+            </label>
+          </div>
+
+          @if (merchantCreateError) {
+          <div class="state-box error-state">{{ merchantCreateError }}</div>
+          }
+
+          @if (merchantCreateSuccess) {
+          <div class="state-box success-state">{{ merchantCreateSuccess }}</div>
+          }
+
+          <button class="primary-action" type="button" (click)="createMerchant()" [disabled]="creatingMerchant">
+            {{ creatingMerchant ? 'Creating...' : 'Create merchant profile' }}
+          </button>
+        </div>
+      </div>
       }
 
       @if (!loading && !error && dashboard) {
-        <div class="merchants-section">
-          <div class="section-head">
-            <div>
-              <span class="section-kicker">[ merchants ]</span>
-              <h2>Your merchant profiles</h2>
-            </div>
-
-            <div class="section-actions">
-              <button class="filter-chip" type="button" [class.active]="selectedMerchantId === null" (click)="selectMerchant(null)">
-                All merchants
-              </button>
-
-              <button class="primary-action small" type="button" (click)="toggleCreateMerchantForm()">
-                + Add merchant
-              </button>
-            </div>
+      <div class="merchants-section">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">[ merchants ]</span>
+            <h2>Your merchant profiles</h2>
           </div>
 
-          @if (walletEditError) {
-            <div class="state-box error-state compact">{{ walletEditError }}</div>
-          }
+          <div class="section-actions">
+            <button class="filter-chip" type="button" [class.active]="selectedMerchantId === null"
+              (click)="selectMerchant(null)">
+              All merchants
+            </button>
 
-          @if (walletEditSuccess) {
-            <div class="state-box success-state compact">{{ walletEditSuccess }}</div>
-          }
-
-          <div class="merchant-grid">
-            @for (merchant of merchants; track merchant.id) {
-              <button class="merchant-card" type="button" [class.active]="selectedMerchantId === merchant.id" (click)="selectMerchant(merchant.id)">
-                <div class="merchant-card-top">
-                  <div>
-                    <h3>{{ merchant.name }}</h3>
-                    <p>{{ merchant.email }}</p>
-                  </div>
-
-                  <span class="status-pill succeeded">
-                    <span class="dot"></span>
-                    {{ merchant.active ? 'active' : 'inactive' }}
-                  </span>
-                </div>
-
-                @if (editingWalletMerchantId === merchant.id) {
-                  <div class="wallet-editor" (click)="$event.stopPropagation()">
-                    <label>
-                      <span>Wallet address</span>
-                      <input type="text" [(ngModel)]="walletEditValue" placeholder="Your Solana wallet address" />
-                    </label>
-
-                    <div class="wallet-editor-actions">
-                      <button class="ghost-action" type="button" (click)="cancelWalletEdit()" [disabled]="updatingWallet">
-                        Cancel
-                      </button>
-
-                      <button class="primary-action small" type="button" (click)="updateMerchantWallet()" [disabled]="updatingWallet">
-                        {{ updatingWallet ? 'Saving...' : 'Save wallet' }}
-                      </button>
-                    </div>
-                  </div>
-                } @else {
-                  <div class="merchant-wallet-row" (click)="$event.stopPropagation()">
-                    <div class="wallet-display">
-                      <span class="wallet-label">Wallet</span>
-                      <span class="wallet-value">{{ formatWallet(merchant.walletAddress, merchant.id) }}</span>
-                    </div>
-
-                    @if (merchant.walletAddress) {
-                      <div class="wallet-actions">
-                        <button class="wallet-action" type="button" (click)="toggleWalletVisibility(merchant.id, $event)">
-                          {{ isWalletVisible(merchant.id) ? 'Hide' : 'Show' }}
-                        </button>
-
-                        <button class="wallet-action" type="button" (click)="copyWallet(merchant.walletAddress, merchant.id, $event)">
-                          {{ copiedWalletMerchantId === merchant.id ? 'Copied' : 'Copy' }}
-                        </button>
-                      </div>
-                    }
-                  </div>
-                }
-
-                <div class="merchant-stats">
-                  <span>{{ merchant.totalPayments }} payments</span>
-
-                  <span>
-                    @if (merchant.totalRevenueSol > 0) {
-                      ◎ {{ merchant.totalRevenueSol | number:'1.6-6' }}
-                    } @else {
-                      R$ {{ merchant.totalRevenue | number:'1.2-2' }}
-                    }
-                  </span>
-                </div>
-
-                <div class="merchant-actions">
-                  <span>Filter payments</span>
-
-                  <span class="pay-link" (click)="startWalletEdit(merchant); $event.stopPropagation()">
-                    Edit wallet
-                  </span>
-
-                  @if (merchant.active) {
-                    <span class="danger-link" (click)="deactivateMerchant(merchant, $event)">
-                      Deactivate
-                    </span>
-                  } @else {
-                    <span class="pay-link" (click)="activateMerchant(merchant, $event)">
-                      Activate
-                    </span>
-                  }
-                  <span class="danger-link" (click)="deleteMerchant(merchant, $event)">
-                    Delete
-                  </span>
-                  <span class="pay-link" (click)="goToSolanaCheckout(merchant); $event.stopPropagation()">
-                    Generate payment
-                  </span>
-                </div>
-              </button>
-            }
+            <button class="primary-action small" type="button" (click)="toggleCreateMerchantForm()">
+              + Add merchant
+            </button>
           </div>
         </div>
 
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi-label">
-              <span class="tag">[01]</span>
-              <span>Total Payments</span>
-            </div>
-            <div class="kpi-value">
-              <span>{{ dashboard.totalPayments }}</span>
-            </div>
-            <div class="kpi-foot">
-              <span>all merchants</span>
-            </div>
-          </div>
+        @if (walletEditError) {
+        <div class="state-box error-state compact">{{ walletEditError }}</div>
+        }
 
-          <div class="kpi accent">
-            <div class="kpi-label">
-              <span class="tag">[02]</span>
-              <span>Total Revenue</span>
+        @if (walletEditSuccess) {
+        <div class="state-box success-state compact">{{ walletEditSuccess }}</div>
+        }
+
+        <div class="merchant-grid">
+          @for (merchant of merchants; track merchant.id) {
+          <button class="merchant-card" type="button" [class.active]="selectedMerchantId === merchant.id"
+            (click)="selectMerchant(merchant.id)">
+            <div class="merchant-card-top">
+              <div>
+                <h3>{{ merchant.name }}</h3>
+                <p>{{ merchant.email }}</p>
+              </div>
+
+              <span class="status-pill succeeded">
+                <span class="dot"></span>
+                {{ merchant.active ? 'active' : 'inactive' }}
+              </span>
             </div>
-            <div class="kpi-value">
-              @if (dashboard.totalRevenueSol > 0) {
-                <span class="currency">◎</span>
-                <span>{{ dashboard.totalRevenueSol | number:'1.6-6' }}</span>
-              } @else {
-                <span class="currency">R$</span>
-                <span>{{ dashboard.totalRevenue | number:'1.2-2' }}</span>
+
+            @if (editingWalletMerchantId === merchant.id) {
+            <div class="wallet-editor" (click)="$event.stopPropagation()">
+              <label>
+                <span>Wallet address</span>
+                <input type="text" [(ngModel)]="walletEditValue" placeholder="Your Solana wallet address" />
+              </label>
+
+              <div class="wallet-editor-actions">
+                <button class="ghost-action" type="button" (click)="cancelWalletEdit()" [disabled]="updatingWallet">
+                  Cancel
+                </button>
+
+                <button class="primary-action small" type="button" (click)="updateMerchantWallet()"
+                  [disabled]="updatingWallet">
+                  {{ updatingWallet ? 'Saving...' : 'Save wallet' }}
+                </button>
+              </div>
+            </div>
+            } @else {
+            <div class="merchant-wallet-row" (click)="$event.stopPropagation()">
+              <div class="wallet-display">
+                <span class="wallet-label">Wallet</span>
+                <span class="wallet-value">{{ formatWallet(merchant.walletAddress, merchant.id) }}</span>
+              </div>
+
+              @if (merchant.walletAddress) {
+              <div class="wallet-actions">
+                <button class="wallet-action" type="button" (click)="toggleWalletVisibility(merchant.id, $event)">
+                  {{ isWalletVisible(merchant.id) ? 'Hide' : 'Show' }}
+                </button>
+
+                <button class="wallet-action" type="button"
+                  (click)="copyWallet(merchant.walletAddress, merchant.id, $event)">
+                  {{ copiedWalletMerchantId === merchant.id ? 'Copied' : 'Copy' }}
+                </button>
+              </div>
               }
             </div>
-            <div class="kpi-foot">
-              <span>confirmed payments</span>
+            }
+
+            <div class="merchant-stats">
+              <span>{{ merchant.totalPayments }} payments</span>
+
+              <span>
+                @if (merchant.totalRevenueSol > 0) {
+                ◎ {{ merchant.totalRevenueSol | number:'1.6-6' }}
+                } @else {
+                R$ {{ merchant.totalRevenue | number:'1.2-2' }}
+                }
+              </span>
             </div>
+
+            <div class="merchant-actions">
+              <span>Filter payments</span>
+
+              <span class="pay-link" (click)="startWalletEdit(merchant); $event.stopPropagation()">
+                Edit wallet
+              </span>
+
+              @if (merchant.active) {
+              <span class="danger-link" (click)="deactivateMerchant(merchant, $event)">
+                Deactivate
+              </span>
+              } @else {
+              <span class="pay-link" (click)="activateMerchant(merchant, $event)">
+                Activate
+              </span>
+              }
+              <span class="danger-link" (click)="deleteMerchant(merchant, $event)">
+                Delete
+              </span>
+              <span class="pay-link" (click)="goToSolanaCheckout(merchant); $event.stopPropagation()">
+                Generate payment
+              </span>
+            </div>
+          </button>
+          }
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label">
+            <span class="tag">[01]</span>
+            <span>Total Payments</span>
+          </div>
+          <div class="kpi-value">
+            <span>{{ dashboard.totalPayments }}</span>
+          </div>
+          <div class="kpi-foot">
+            <span>all merchants</span>
           </div>
         </div>
 
-        <div class="charts-row">
-          <div class="card">
-            <div class="card-head">
-              <div class="card-title">
-                <span class="dot"></span>
-                <span class="id">/01</span>
-                <span>· revenue trend</span>
-              </div>
-              <span class="card-meta">{{ revenueChartLabels.length }} data pts</span>
-            </div>
-            <div class="chart-body">
-              <app-chart-card
-                title="Revenue Trend"
-                chartId="merchant-revenue-chart"
-                [chartType]="'line'"
-                [labels]="revenueChartLabels"
-                [data]="revenueChartData"
-                [isDark]="isDark">
-              </app-chart-card>
-            </div>
+        <div class="kpi accent">
+          <div class="kpi-label">
+            <span class="tag">[02]</span>
+            <span>Total Revenue</span>
           </div>
-
-          <div class="card">
-            <div class="card-head">
-              <div class="card-title">
-                <span class="dot"></span>
-                <span class="id">/02</span>
-                <span>· payments per day</span>
-              </div>
-              <span class="card-meta">{{ paymentsChartLabels.length }} data pts · count</span>
-            </div>
-            <div class="chart-body">
-              <app-chart-card
-                title="Payments Per Day"
-                chartId="merchant-payments-chart"
-                [chartType]="'bar'"
-                [labels]="paymentsChartLabels"
-                [data]="paymentsChartData"
-                [isDark]="isDark">
-              </app-chart-card>
-            </div>
+          <div class="kpi-value">
+            @if (dashboard.totalRevenueSol > 0) {
+            <span class="currency">◎</span>
+            <span>{{ dashboard.totalRevenueSol | number:'1.6-6' }}</span>
+            } @else {
+            <span class="currency">R$</span>
+            <span>{{ dashboard.totalRevenue | number:'1.2-2' }}</span>
+            }
+          </div>
+          <div class="kpi-foot">
+            <span>confirmed payments</span>
           </div>
         </div>
+      </div>
 
-        <div class="card table-section">
+      <div class="charts-row">
+        <div class="card">
           <div class="card-head">
             <div class="card-title">
               <span class="dot"></span>
-              <span class="id">/03</span>
-              <span>· recent payments · {{ selectedMerchantLabel }}</span>
+              <span class="id">/01</span>
+              <span>· revenue trend</span>
             </div>
-            <span class="card-meta">
-              @if (paymentsLoading) {
-                loading...
-              } @else {
-                {{ recentPayments.length }} rows
-              }
-            </span>
+            <span class="card-meta">{{ revenueChartLabels.length }} data pts</span>
           </div>
+          <div class="chart-body">
+            <app-chart-card title="Revenue Trend" chartId="merchant-revenue-chart" [chartType]="'line'"
+              [labels]="revenueChartLabels" [data]="revenueChartData" [isDark]="isDark">
+            </app-chart-card>
+          </div>
+        </div>
 
-          <div class="table-wrap">
-            <table class="payments">
-              <thead>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <span class="dot"></span>
+              <span class="id">/02</span>
+              <span>· payments per day</span>
+            </div>
+            <span class="card-meta">{{ paymentsChartLabels.length }} data pts · count</span>
+          </div>
+          <div class="chart-body">
+            <app-chart-card title="Payments Per Day" chartId="merchant-payments-chart" [chartType]="'bar'"
+              [labels]="paymentsChartLabels" [data]="paymentsChartData" [isDark]="isDark">
+            </app-chart-card>
+          </div>
+        </div>
+      </div>
+
+      <div class="card table-section">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span class="id">/03</span>
+            <span>· recent payments · {{ selectedMerchantLabel }}</span>
+          </div>
+          <span class="card-meta">
+            @if (paymentsLoading) {
+            loading...
+            } @else {
+            {{ recentPayments.length }} rows
+            }
+          </span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="payments">
+            <thead>
               <tr>
                 <th style="width:160px">Status</th>
                 <th>Customer</th>
                 <th style="width:160px;text-align:right">Amount</th>
                 <th style="width:160px">Date</th>
               </tr>
-              </thead>
-              <tbody>
-                @if (recentPayments.length === 0) {
-                  <tr>
-                    <td colspan="4" class="col-empty">
-                      No payments found for this selection.
-                    </td>
-                  </tr>
-                }
-                @for (payment of recentPayments; track payment.id) {
-                  <tr>
-                    <td>
-                      <span class="status-pill" [class]="statusClass(payment.status)">
-                        <span class="dot"></span>
-                        {{ payment.status }}
-                      </span>
-                    </td>
-                    <td class="col-customer">
-                      {{ payment.customerEmail || 'Unknown customer' }}
-                    </td>
-                    <td class="col-amount">
-                      @if (payment.currency === 'SOL' || payment.currency === 'USDC') {
-                        <span class="currency">◎</span>{{ payment.amount | number:'1.6-6' }}
-                      } @else {
-                        <span class="currency">R$</span>{{ payment.amount | number:'1.2-2' }}
-                      }
-                    </td>
-                    <td class="col-date">
-                      {{ payment.createdAt | date:'dd/MM/yyyy HH:mm' }}
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+            </thead>
+            <tbody>
+              @if (recentPayments.length === 0) {
+              <tr>
+                <td colspan="4" class="col-empty">
+                  No payments found for this selection.
+                </td>
+              </tr>
+              }
+              @for (payment of recentPayments; track payment.id) {
+              <tr>
+                <td>
+                  <span class="status-pill" [class]="statusClass(payment.status)">
+                    <span class="dot"></span>
+                    {{ payment.status }}
+                  </span>
+                </td>
+                <td class="col-customer">
+                  {{ payment.customerEmail || 'Unknown customer' }}
+                </td>
+                <td class="col-amount">
+                  @if (payment.currency === 'SOL' || payment.currency === 'USDC') {
+                  <span class="currency">◎</span>{{ payment.amount | number:'1.6-6' }}
+                  } @else {
+                  <span class="currency">R$</span>{{ payment.amount | number:'1.2-2' }}
+                  }
+                </td>
+                <td class="col-date">
+                  {{ payment.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
         </div>
+      </div>
       }
     </main>
   </div>
