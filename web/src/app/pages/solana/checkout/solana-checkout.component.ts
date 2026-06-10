@@ -5,6 +5,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
@@ -54,6 +55,7 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
   private cdr    = inject(ChangeDetectorRef);
   private route  = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
 
   // ── Query params ───────────────────────────────────────────────────────────
   slug:            string | null   = null;
@@ -321,7 +323,7 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     if (this.isBuyerContext) {
-      this.router.navigate(['/discover']);
+      this.location.back();
       return;
     }
 
