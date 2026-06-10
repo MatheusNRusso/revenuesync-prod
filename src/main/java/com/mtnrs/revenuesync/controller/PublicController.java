@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import com.mtnrs.revenuesync.domain.UserPublicProfile;
 import com.mtnrs.revenuesync.repository.UserPublicProfileRepository;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +81,7 @@ public class PublicController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/merchants/id/{id}")
     public ResponseEntity<Map<String, Object>> getMerchantById(@PathVariable Long id) {
         return merchantRepository.findById(id)
