@@ -2,9 +2,7 @@
   <div class="chat-container">
     <div class="chat-header">
       <h2>[ contact ]</h2>
-      <span class="online-badge" [class.connected]="connected">
-        {{ connected ? '🟢 Online' : '🔴 Offline' }}
-      </span>
+      <span class="online-badge connected">🟢 Online</span>
     </div>
 
     <div class="messages-area">
@@ -27,12 +25,12 @@
         [(ngModel)]="newMessage"
         placeholder="Type your message..."
         (keyup.enter)="sendMessage()"
-        [disabled]="!connected || chatLoading"
+        [disabled]="chatLoading"
         class="chat-input">
       </textarea>
       <button
         (click)="sendMessage()"
-        [disabled]="!newMessage.trim() || !connected || chatLoading"
+        [disabled]="!newMessage.trim() || chatLoading"
         class="btn-send">
         {{ chatLoading ? '...' : 'Send' }}
       </button>
