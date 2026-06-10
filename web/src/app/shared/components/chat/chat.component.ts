@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { interval, Subject, Subscription } from 'rxjs';
@@ -17,6 +17,8 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   @Input() conversation: ConversationResponse | null = null;
   @Input() buyerId: number | null = null;
+
+  @ViewChild('messagesArea') private messagesArea!: ElementRef;
 
   messages: ChatMessageResponse[] = [];
   newMessage = '';
@@ -43,6 +45,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private scrollToBottom(): void {
+    setTimeout(() => {
+      if (this.messagesArea) {
+        const el = this.messagesArea.nativeElement;
+        el.scrollTop = el.scrollHeight;
+      }
+    }, 50);
+  }
+
   private loadMessages(): void {
     if (!this.conversation) return;
     this.chatService.getMessages(this.conversation.id).subscribe({
@@ -50,6 +61,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.messages = msgs;
         this.lastMessageCount = msgs.length;
         this.cdr.detectChanges();
+        this.scrollToBottom();
       }
     });
   }
@@ -67,6 +79,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.messages = msgs;
           this.lastMessageCount = msgs.length;
           this.cdr.detectChanges();
+          this.scrollToBottom();
         }
       },
       error: () => {}
@@ -86,6 +99,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.lastMessageCount = this.messages.length;
         this.chatLoading = false;
         this.cdr.detectChanges();
+        this.scrollToBottom();
       },
       error: () => {
         this.chatLoading = false;
