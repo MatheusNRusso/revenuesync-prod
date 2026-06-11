@@ -38,6 +38,8 @@
     overflow-y: auto;
     margin-bottom: 1rem;
     padding-right: 0.5rem;
+    display: flex;
+    flex-direction: column;
 
     .empty-state {
       display: flex;
@@ -51,14 +53,20 @@
     .message {
       margin-bottom: 1rem;
       padding: 0.75rem 1rem;
-      background: rgba(16, 185, 129, 0.05);
-      border-left: 2px solid rgba(16, 185, 129, 0.3);
-      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      border-left: 2px solid rgba(148, 163, 184, 0.4);
+      border-radius: 8px 8px 8px 2px;
+      max-width: 75%;
+      margin-right: auto;
 
       &.own {
-        margin-left: 2rem;
+        margin-left: auto;
+        margin-right: 0;
         background: rgba(16, 185, 129, 0.15);
-        border-left-color: var(--color-accent, #10b981);
+        border-left: none;
+        border-right: 2px solid var(--color-accent, #10b981);
+        border-radius: 8px 8px 2px 8px;
+        text-align: right;
       }
 
       .sender-name {

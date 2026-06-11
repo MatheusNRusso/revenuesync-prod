@@ -1302,3 +1302,53 @@ table.payments {
     justify-content: center;
   }
 }
+
+// ── Inbox ────────────────────────────────────────────────────────────────────
+.inbox-section {
+  padding: 1.5rem;
+
+  .inbox-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    height: calc(100vh - 220px);
+  }
+
+  .conversations-list {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-y: auto;
+    background: var(--surface);
+
+    .conv-item {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+
+      &:hover { background: rgba(0,212,170,0.05); }
+      &.active { background: rgba(0,212,170,0.1); border-left: 2px solid var(--accent); }
+
+      .conv-name { font-weight: 600; font-size: 0.875rem; }
+      .conv-meta { font-size: 0.75rem; opacity: 0.6; margin-top: 2px; }
+    }
+  }
+
+  .unread-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: var(--accent);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+  }
+
+  .conversation-chat {
+    overflow-y: auto;
+  }
+}
