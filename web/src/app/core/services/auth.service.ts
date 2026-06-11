@@ -105,7 +105,7 @@ export class AuthService {
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.sub ? parseInt(payload.sub, 10) : null;
+      return payload.userId ? Number(payload.userId) : null;
     } catch {
       return null;
     }
