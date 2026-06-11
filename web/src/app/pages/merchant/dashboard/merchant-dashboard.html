@@ -124,8 +124,11 @@
 
           <div class="conversation-chat">
             @if (selectedConversation) {
-            <app-chat [conversation]="selectedConversation" [buyerId]="currentUserId">
-            </app-chat>
+              @for (conv of [selectedConversation]; track conv.id) {
+                <app-chat [conversation]="conv" [buyerId]="currentUserId">
+
+                </app-chat>
+              }
             } @else {
             <div class="state-box">Select a conversation to start chatting.</div>
             }
@@ -133,7 +136,7 @@
         </div>
       </div>
       }
-      
+
       @if (loading) {
       <div class="state-box">Loading...</div>
       }
