@@ -1352,3 +1352,22 @@ table.payments {
     overflow-y: auto;
   }
 }
+
+@media (max-width: 768px) {
+  .inbox-section {
+    padding: 1rem;
+
+    .inbox-layout {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+
+    .conversations-list {
+      max-height: 250px;
+    }
+
+    .conversation-chat {
+      min-height: 400px;
+    }
+  }
+}
