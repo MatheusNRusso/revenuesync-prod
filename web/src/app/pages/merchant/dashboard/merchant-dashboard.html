@@ -118,17 +118,19 @@
               @if (conv.unreadCount > 0) {
               <span class="unread-badge">{{ conv.unreadCount }}</span>
               }
+              <button class="conv-close" (click)="closeConversation(conv, $event)" title="Close conversation">✕</button>
+
             </div>
             }
           </div>
 
           <div class="conversation-chat">
             @if (selectedConversation) {
-              @for (conv of [selectedConversation]; track conv.id) {
-                <app-chat [conversation]="conv" [buyerId]="currentUserId">
+            @for (conv of [selectedConversation]; track conv.id) {
+            <app-chat [conversation]="conv" [buyerId]="currentUserId">
 
-                </app-chat>
-              }
+            </app-chat>
+            }
             } @else {
             <div class="state-box">Select a conversation to start chatting.</div>
             }

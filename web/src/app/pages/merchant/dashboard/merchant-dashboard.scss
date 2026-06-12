@@ -1,20 +1,20 @@
 @use '../../../../design-system' as ds;
 
 .app {
-  --bg:          #080c14;
-  --surface:     #0d1117;
-  --surface-2:   #111821;
-  --accent:      #00d4aa;
-  --accent-dim:  #00d4aa22;
+  --bg: #080c14;
+  --surface: #0d1117;
+  --surface-2: #111821;
+  --accent: #00d4aa;
+  --accent-dim: #00d4aa22;
   --accent-glow: #00d4aa14;
-  --text:        #e2e8f0;
-  --text-dim:    #94a3b8;
-  --muted:       #64748b;
-  --border:      #1e2d3d;
-  --border-bright:#2a3f55;
-  --warn:        #fbbf24;
-  --danger:      #f87171;
-  --purple:      #9945FF;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --muted: #64748b;
+  --border: #1e2d3d;
+  --border-bright: #2a3f55;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --purple: #9945FF;
 
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -36,7 +36,7 @@
     --muted: #94a3b8;
   }
 
-  > * {
+  >* {
     position: relative;
     z-index: 1;
   }
@@ -189,8 +189,12 @@
   font-family: inherit;
   margin-bottom: 8px;
   transition: all 0.15s;
-  &:hover { background: rgba(248, 113, 113, 0.14); }
+
+  &:hover {
+    background: rgba(248, 113, 113, 0.14);
+  }
 }
+
 // Content
 .content {
   display: flex;
@@ -199,11 +203,11 @@
   position: relative;
 
   &::before {
-    @include ds.grid-mesh($size: 80px, $line: rgba(30,45,66,0.18), $sub: rgba(30,45,66,0.06));
+    @include ds.grid-mesh($size: 80px, $line: rgba(30, 45, 66, 0.18), $sub: rgba(30, 45, 66, 0.06));
     position: absolute;
   }
 
-  > * {
+  >* {
     position: relative;
     z-index: 1;
   }
@@ -353,7 +357,7 @@
   }
 
   &:hover::after {
-    animation: ds-scan-sweep 1.6s cubic-bezier(0.4,0,0.6,1) forwards;
+    animation: ds-scan-sweep 1.6s cubic-bezier(0.4, 0, 0.6, 1) forwards;
   }
 }
 
@@ -654,7 +658,10 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    &:hover { text-decoration: underline; }
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
@@ -702,7 +709,7 @@
   }
 
   &:hover::after {
-    animation: ds-scan-sweep 1.4s cubic-bezier(0.4,0,0.6,1) forwards;
+    animation: ds-scan-sweep 1.4s cubic-bezier(0.4, 0, 0.6, 1) forwards;
   }
 
   &.accent {
@@ -920,6 +927,7 @@ table.payments {
 }
 
 @media (max-width: 1100px) {
+
   .kpi-row,
   .charts-row {
     grid-template-columns: 1fr;
@@ -957,6 +965,7 @@ table.payments {
     gap: 14px;
   }
 }
+
 .merchant-wallet-row {
   display: flex;
   align-items: center;
@@ -1249,6 +1258,7 @@ table.payments {
     font-size: 32px;
   }
 }
+
 @media (max-width: 768px) {
   .sidebar {
     display: flex !important;
@@ -1261,7 +1271,7 @@ table.payments {
 
   .sidebar-logo,
   .sidebar-section,
-  .sidebar-divider{
+  .sidebar-divider {
     display: none;
   }
 
@@ -1328,11 +1338,49 @@ table.payments {
       position: relative;
       transition: background 0.2s;
 
-      &:hover { background: rgba(0,212,170,0.05); }
-      &.active { background: rgba(0,212,170,0.1); border-left: 2px solid var(--accent); }
+      &:hover {
+        background: rgba(0, 212, 170, 0.05);
+      }
 
-      .conv-name { font-weight: 600; font-size: 0.875rem; }
-      .conv-meta { font-size: 0.75rem; opacity: 0.6; margin-top: 2px; }
+      &.active {
+        background: rgba(0, 212, 170, 0.1);
+        border-left: 2px solid var(--accent);
+      }
+
+      .conv-name {
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+
+      .conv-meta {
+        font-size: 0.75rem;
+        opacity: 0.6;
+        margin-top: 2px;
+      }
+
+      .conv-close {
+        position: absolute;
+        bottom: 0.75rem;
+        right: 0.75rem;
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        opacity: 0;
+        transition: all 0.2s;
+
+        &:hover {
+          color: var(--danger);
+          background: rgba(248, 113, 113, 0.1);
+        }
+      }
+
+      &:hover .conv-close {
+        opacity: 1;
+      }
     }
   }
 

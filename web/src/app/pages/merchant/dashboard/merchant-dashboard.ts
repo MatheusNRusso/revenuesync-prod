@@ -435,6 +435,24 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     return this.conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
   }
 
+  closeConversation(conv: ConversationResponse, event: Event): void {
+    event.stopPropagation();
+    if (!confirm(`Close conversation with ${conv.buyerName}?`)) return;
+    this.chatService.closeConversation(conv.id).subscribe({
+      next: () => {
+        this.conversations = this.conversations.filter(c => c.id !== conv.id);
+        if (this.selectedConversation?.id === conv.id) {
+          this.selectedConversation = null;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'Failed to close conversation.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   logout(): void {
     this.authService.logout();
   }
