@@ -1360,26 +1360,22 @@ table.payments {
 
       .conv-close {
         position: absolute;
-        bottom: 0.75rem;
+        top: 0.75rem;
         right: 0.75rem;
-        background: none;
-        border: none;
-        color: var(--muted);
+        background: rgba(248, 113, 113, 0.1);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        color: var(--danger);
         cursor: pointer;
-        font-size: 0.75rem;
-        padding: 2px 6px;
+        font-size: 0.7rem;
+        padding: 2px 8px;
         border-radius: 4px;
-        opacity: 0;
+        opacity: 1;
         transition: all 0.2s;
 
         &:hover {
-          color: var(--danger);
-          background: rgba(248, 113, 113, 0.1);
+          background: rgba(248, 113, 113, 0.25);
+          border-color: var(--danger);
         }
-      }
-
-      &:hover .conv-close {
-        opacity: 1;
       }
     }
   }
