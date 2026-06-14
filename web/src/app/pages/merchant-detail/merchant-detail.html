@@ -51,10 +51,16 @@
       </div>
     </div>
 
-    <!-- Chat Component -->
+    <!-- Chat Toggle -->
+    <div class="chat-toggle-bar" (click)="toggleChat()">
+      <span>[ contact ]</span>
+      <span class="chat-toggle-icon">{{ chatOpen ? '▲ close' : '▼ open chat' }}</span>
+    </div>
+
+    @if (chatOpen) {
     <app-chat [conversation]="conversation" [buyerId]="currentUserId">
     </app-chat>
-
+    }
     }
   </div>
 </div>

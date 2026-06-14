@@ -208,3 +208,28 @@
     }
   }
 }
+
+.chat-toggle-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--color-bg-secondary, #111827);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 1rem;
+  color: var(--color-accent, #10b981);
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.4);
+  }
+
+  .chat-toggle-icon {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+}

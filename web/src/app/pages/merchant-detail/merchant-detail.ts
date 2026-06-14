@@ -23,6 +23,7 @@ export class MerchantDetailComponent implements OnInit {
   merchant: MerchantDetail | null = null;
   conversation: ConversationResponse | null = null;
   currentUserId: number | null = null;
+  chatOpen = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -32,7 +33,12 @@ export class MerchantDetailComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly cdr: ChangeDetectorRef,
     private readonly location: Location
-  ) {}
+  ) { }
+
+
+  toggleChat(): void {
+    this.chatOpen = !this.chatOpen;
+  }
 
   ngOnInit(): void {
     const merchantId = this.route.snapshot.paramMap.get('id');
