@@ -13,43 +13,47 @@
   <div class="detail-container">
 
     @if (loading) {
-      <div class="state-loading">
-        <span class="accent">$</span> loading merchant<span class="blink">▊</span>
-      </div>
+    <div class="state-loading">
+      <span class="accent">$</span> loading merchant<span class="blink">▊</span>
+    </div>
     }
 
     @if (!loading && error) {
-      <div class="state-error">
-        <span class="accent">$</span> {{ error }}
-        <button class="btn-back" (click)="goToDiscover()">← Back to Discover</button>
-      </div>
+    <div class="state-error">
+      <span class="accent">$</span> {{ error }}
+      <button class="btn-back" (click)="goToDiscover()">← Back to Discover</button>
+    </div>
     }
 
     @if (!loading && merchant) {
 
-      <!-- Merchant Header -->
-      <div class="merchant-header">
-        @if (merchant.userGithubAvatarUrl) {
-          <img class="merchant-avatar" [src]="merchant.userGithubAvatarUrl" [alt]="merchant.name" />
-        } @else {
-          <div class="merchant-avatar merchant-avatar-initials">
-            {{ merchant.name.slice(0, 2).toUpperCase() }}
-          </div>
-        }
-        <div class="merchant-info">
-          <h1 class="merchant-name">{{ merchant.name }}</h1>
-          <p class="merchant-desc">{{ merchant.description }}</p>
-          <button class="btn-pay-primary" (click)="onPayNow(merchant.slug)">
-            <span>◎</span> Pay with Solana →
-          </button>
-        </div>
+    <!-- Merchant Header -->
+    <div class="merchant-header">
+      <div class="service-icon">
+        {{ merchant.name.slice(0, 2).toUpperCase() }}
       </div>
+      <div class="merchant-info">
+        <span class="service-label">[ service ]</span>
+        <h1 class="merchant-name">{{ merchant.name }}</h1>
+        <span class="service-slug">{{ merchant.slug }}</span>
+        @if (merchant.description) {
+        <p class="merchant-desc">{{ merchant.description }}</p>
+        }
+        <div class="merchant-owner">
+          @if (merchant.userGithubAvatarUrl) {
+          <img class="owner-avatar" [src]="merchant.userGithubAvatarUrl" [alt]="merchant.userDisplayName" />
+          }
+          <span class="owner-name">by {{ merchant.userDisplayName || 'Unknown' }}</span>
+        </div>
+        <button class="btn-pay-primary" (click)="onPayNow(merchant.slug)">
+          <span>◎</span> Pay with Solana →
+        </button>
+      </div>
+    </div>
 
-      <!-- Chat Component -->
-      <app-chat
-        [conversation]="conversation"
-        [buyerId]="currentUserId">
-      </app-chat>
+    <!-- Chat Component -->
+    <app-chat [conversation]="conversation" [buyerId]="currentUserId">
+    </app-chat>
 
     }
   </div>
