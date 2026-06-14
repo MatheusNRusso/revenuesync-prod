@@ -1361,7 +1361,7 @@ table.payments {
       .conv-close {
         position: absolute;
         top: 0.75rem;
-        right: 0.75rem;
+        right: 2.5rem;
         background: rgba(248, 113, 113, 0.1);
         border: 1px solid rgba(248, 113, 113, 0.3);
         color: var(--danger);
@@ -1382,7 +1382,7 @@ table.payments {
 
   .unread-badge {
     position: absolute;
-    top: 0.75rem;
+    bottom: 0.75rem;
     right: 0.75rem;
     background: var(--accent);
     color: #000;
