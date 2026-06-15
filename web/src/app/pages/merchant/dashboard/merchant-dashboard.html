@@ -119,16 +119,19 @@
               <span class="unread-badge">{{ conv.unreadCount }}</span>
               }
               <button class="conv-close" (click)="closeConversation(conv, $event)" title="Close conversation">✕</button>
-
             </div>
             }
           </div>
 
           <div class="conversation-chat">
             @if (selectedConversation) {
+            <div class="chat-actions">
+              <button class="primary-action small" (click)="openPaymentModal()">
+                ◎ Request Payment
+              </button>
+            </div>
             @for (conv of [selectedConversation]; track conv.id) {
             <app-chat [conversation]="conv" [buyerId]="currentUserId">
-
             </app-chat>
             }
             } @else {
@@ -136,6 +139,28 @@
             }
           </div>
         </div>
+
+        @if (showPaymentModal) {
+        <div class="modal-overlay" (click)="closePaymentModal()">
+          <div class="modal-box" (click)="$event.stopPropagation()">
+            <h3>◎ Request Payment</h3>
+            <p>Enter the amount in SOL to request from the buyer.</p>
+            <label>
+              <span>Amount (SOL)</span>
+              <input type="number" [(ngModel)]="paymentRequestAmount"
+                placeholder="0.05" step="0.001" min="0.000000001" />
+            </label>
+            <div class="modal-actions">
+              <button class="ghost-action" (click)="closePaymentModal()">Cancel</button>
+              <button class="primary-action small"
+                (click)="sendPaymentRequest()"
+                [disabled]="!paymentRequestAmount || paymentRequestLoading">
+                {{ paymentRequestLoading ? 'Sending...' : 'Send Request' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        }
       </div>
       }
 

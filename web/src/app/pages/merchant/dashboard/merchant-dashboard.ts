@@ -75,6 +75,11 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   revenueChartLabels: string[] = [];
   revenueChartData: number[] = [];
 
+  // ── Payment Request ─────────────────────────────────────────
+  showPaymentModal = false;
+  paymentRequestAmount: number | null = null;
+  paymentRequestLoading = false;
+
   ngOnInit(): void {
     this.loadProfile();
     this.currentUserId = this.authService.getCurrentUserId();
@@ -448,6 +453,37 @@ export class MerchantDashboard implements OnInit, OnDestroy {
       },
       error: () => {
         this.error = 'Failed to close conversation.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  openPaymentModal(): void {
+    this.showPaymentModal = true;
+    this.paymentRequestAmount = null;
+  }
+
+  closePaymentModal(): void {
+    this.showPaymentModal = false;
+    this.paymentRequestAmount = null;
+  }
+
+  sendPaymentRequest(): void {
+    if (!this.selectedConversation || !this.paymentRequestAmount) return;
+    this.paymentRequestLoading = true;
+
+    this.chatService.sendPaymentRequest(
+      this.selectedConversation.id,
+      this.paymentRequestAmount
+    ).subscribe({
+      next: () => {
+        this.paymentRequestLoading = false;
+        this.showPaymentModal = false;
+        this.paymentRequestAmount = null;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.paymentRequestLoading = false;
         this.cdr.detectChanges();
       }
     });
