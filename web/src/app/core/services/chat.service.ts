@@ -9,7 +9,7 @@ export class ChatApiService {
 
   private readonly baseUrl = '/api/chats';
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   startConversation(merchantId: number): Observable<ConversationResponse> {
     return this.http.post<ConversationResponse>(`${this.baseUrl}/start`, { merchantId });
@@ -35,5 +35,12 @@ export class ChatApiService {
 
   closeConversation(conversationId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${conversationId}`);
+  }
+
+  sendPaymentRequest(conversationId: number, amountSol: number): Observable<ChatMessageResponse> {
+    return this.http.post<ChatMessageResponse>(
+      `${this.baseUrl}/${conversationId}/payment-request`,
+      { amountSol }
+    );
   }
 }

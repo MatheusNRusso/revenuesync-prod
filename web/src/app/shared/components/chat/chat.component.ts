@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { interval, Subject, Subscription } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
@@ -31,13 +32,23 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly chatService: ChatApiService,
-    private readonly cdr: ChangeDetectorRef
-  ) {}
+    private readonly cdr: ChangeDetectorRef,
+    private readonly router: Router
+  ) { }
 
   ngOnInit(): void {
     if (!this.conversation) return;
     this.loadMessages();
     this.startPolling();
+  }
+
+  onPaymentRequest(msg: ChatMessageResponse): void {
+    this.router.navigate(['/solana/checkout'], {
+      queryParams: {
+        token: msg.paymentToken,
+        amount: msg.paymentAmountSol
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -82,7 +93,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.scrollToBottom();
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
