@@ -5,7 +5,7 @@ import { tap, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 
 interface MeProfile {
-  id:   number;
+  id: number;
   role: string;
 }
 
@@ -14,25 +14,13 @@ export class AuthService {
 
   private readonly TOKEN_KEY = 'token';
 
-  constructor(private http: HttpClient, private router: Router) {}
-
-  // ── Login ──────────────────────────────────────────────────────────────────
+  constructor(private http: HttpClient, private router: Router) { }
 
   login(email: string, password: string) {
     return this.http.post<{ token: string }>('/auth/login', { email, password })
       .pipe(tap(res => localStorage.setItem(this.TOKEN_KEY, res.token)));
   }
 
-  /**
-   * Logs in and redirects.
-   *
-   * If redirectUrl is a valid internal path (starts with '/'), the user lands
-   * there — used by the Discover auth gate so buyers return to checkout.
-   *
-   * Otherwise:
-   *   ADMIN → /dashboard
-   *   USER  → /discover
-   */
   loginAndRedirect(
     email: string,
     password: string,
@@ -50,28 +38,34 @@ export class AuthService {
     );
   }
 
-  // ── OAuth2 callback ────────────────────────────────────────────────────────
-
-  /**
-   * Called by OAuth2CallbackComponent after receiving the token.
-   * ADMIN → /dashboard | USER → /discover
-   */
   saveTokenAndRedirect(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
     this.redirectByRole();
   }
 
-  // ── Role-based redirect ────────────────────────────────────────────────────
-
   redirectByRole(): void {
     if (this.getRole() === 'ADMIN') {
       this.router.navigate(['/dashboard']);
+      return;
+    }
+    const hasMerchants = this.getHasMerchants();
+    if (hasMerchants) {
+      this.router.navigate(['/merchant/dashboard']);
     } else {
-      this.router.navigate(['/discover']);
+      this.router.navigate(['/buyer/dashboard']);
     }
   }
 
-  // ── Auth state ─────────────────────────────────────────────────────────────
+  getHasMerchants(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.hasMerchants === true;
+    } catch {
+      return false;
+    }
+  }
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
@@ -98,7 +92,7 @@ export class AuthService {
   }
 
   isAdmin(): boolean { return this.getRole() === 'ADMIN'; }
-  isUser():  boolean { return this.getRole() === 'USER';  }
+  isUser(): boolean { return this.getRole() === 'USER'; }
 
   getCurrentUserId(): number | null {
     const token = this.getToken();
