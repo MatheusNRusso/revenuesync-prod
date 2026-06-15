@@ -93,8 +93,26 @@ public class ChatService {
         conversation.close();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    @Transactional
+    public ChatMessageResponse sendPaymentRequest(
+            Long conversationId, User merchant, java.math.BigDecimal amountSol) {
 
+        Conversation conversation = findConversation(conversationId);
+
+        // Only merchant can send payment request
+        if (!conversation.getMerchant().getUser().getId().equals(merchant.getId())) {
+            throw new SecurityException("Only the merchant can send a payment request");
+        }
+
+        String token = java.util.UUID.randomUUID().toString().replace("-", "");
+
+        ChatMessage message = ChatMessage.paymentRequest(conversation, merchant, amountSol, token);
+        chatMessageRepository.save(message);
+
+        return toMessageResponse(message);
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
     private Conversation findConversation(Long id) {
         return conversationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
@@ -131,7 +149,11 @@ public class ChatService {
                 m.getSender().getName(),
                 m.getContent(),
                 m.isRead(),
-                m.getCreatedAt()
+                m.getCreatedAt(),
+                m.getMessageType() != null ? m.getMessageType().name() : "TEXT",
+                m.getPaymentToken(),
+                m.getPaymentAmountSol(),
+                m.getPaymentStatus()
         );
     }
 }

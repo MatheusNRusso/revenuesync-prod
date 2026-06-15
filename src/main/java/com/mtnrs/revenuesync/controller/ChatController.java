@@ -48,6 +48,15 @@ public class ChatController {
         return ResponseEntity.ok(chatService.sendMessage(conversationId, user, request.content()));
     }
 
+    @PostMapping("/{conversationId}/payment-request")
+    public ResponseEntity<ChatMessageResponse> sendPaymentRequest(
+            @PathVariable Long conversationId,
+            @RequestBody java.util.Map<String, Object> body,
+            @AuthenticationPrincipal User user) {
+        java.math.BigDecimal amount = new java.math.BigDecimal(body.get("amountSol").toString());
+        return ResponseEntity.ok(chatService.sendPaymentRequest(conversationId, user, amount));
+    }
+
     @PutMapping("/{conversationId}/read")
     public ResponseEntity<Void> markAsRead(
             @PathVariable Long conversationId,
