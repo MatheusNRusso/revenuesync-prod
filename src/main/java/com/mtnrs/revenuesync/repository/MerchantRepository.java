@@ -32,4 +32,6 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long> {
     Optional<Merchant> findBySlug(String slug);
 
     List<Merchant> findByActiveTrue();
+
+    boolean existsByUserId(Long userId);
 }
