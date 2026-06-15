@@ -39,6 +39,15 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  // ── Buyer dashboard ────────────────────────────────────────────────────────
+  {
+    path: 'buyer/dashboard',
+    loadComponent: () =>
+      import('./pages/buyer/dashboard/buyer-dashboard')
+        .then(m => m.BuyerDashboard),
+    canActivate: [authGuard]
+  },
+
   // ── Admin ──────────────────────────────────────────────────────────────────
   {
     path: 'dashboard',
