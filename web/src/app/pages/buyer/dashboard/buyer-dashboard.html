@@ -1,0 +1,91 @@
+<div class="buyer-app">
+  <aside class="sidebar">
+    <div class="sidebar-logo" (click)="goTo('/discover')">
+      <div class="sidebar-mark"></div>
+      <span>revenue<b>Sync</b></span>
+    </div>
+    <div class="sidebar-section">/ navigate</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+        <span>My Chats</span>
+      </a>
+      <a class="sidebar-link" (click)="goTo('/buyer/history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <span>My Purchases</span>
+      </a>
+      <a class="sidebar-link" (click)="goTo('/discover')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+        <span>Discover</span>
+      </a>
+      <a class="sidebar-link" (click)="goTo('/profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
+        <span>Profile</span>
+      </a>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="become-merchant-btn" (click)="goTo('/merchant/dashboard')">
+        + Become a Merchant
+      </button>
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+  </aside>
+  <div class="content">
+    <header class="topbar">
+      <div class="topbar-title">
+        <span class="prompt">$</span>
+        <span>My Chats</span>
+        <span class="meta">~/buyer · chats</span>
+      </div>
+    </header>
+    <main class="main">
+      @if (loading) {
+        <div class="state-box">Loading conversations...</div>
+      }
+      @if (!loading && conversations.length === 0) {
+        <div class="state-box empty">
+          <p>No conversations yet.</p>
+          <button class="primary-action" (click)="goTo('/discover')">
+            Browse Services →
+          </button>
+        </div>
+      }
+      @if (!loading && conversations.length > 0) {
+        <div class="chats-layout">
+          <div class="conversations-list">
+            @for (conv of conversations; track conv.id) {
+              <div class="conv-item"
+                [class.active]="selectedConversation?.id === conv.id"
+                (click)="selectConversation(conv)">
+                <div class="conv-name">{{ conv.merchantName }}</div>
+                <div class="conv-meta">{{ conv.buyerName }}</div>
+                @if (conv.unreadCount > 0) {
+                  <span class="unread-badge">{{ conv.unreadCount }}</span>
+                }
+              </div>
+            }
+          </div>
+          <div class="conversation-chat">
+            @if (selectedConversation) {
+              @for (conv of [selectedConversation]; track conv.id) {
+                <app-chat [conversation]="conv" [buyerId]="currentUserId"></app-chat>
+              }
+            } @else {
+              <div class="state-box">Select a conversation to view messages.</div>
+            }
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>
