@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { AuthService }          from '../../core/services/auth.service';
-import { DiscoverService }       from '../../core/services/discover.service';
-import { PublicProfileService }  from '../../core/services/public-profile.service';
-import { PublicMerchant }        from '../../core/models/discover/public-merchant.model';
+import { AuthService } from '../../core/services/auth.service';
+import { DiscoverService } from '../../core/services/discover.service';
+import { PublicProfileService } from '../../core/services/public-profile.service';
+import { PublicMerchant } from '../../core/models/discover/public-merchant.model';
 import { PublicProfile, ProfileCategory, CATEGORY_LABELS } from '../../core/models/discover/public-profile.model';
 
 type MerchantSource = 'LIVE' | 'FEATURED';
@@ -20,7 +20,7 @@ interface MarketplaceMerchant {
   id: string; name: string; slug: string;
   description?: string; avatarUrl?: string;
   category: string; source: MerchantSource;
-  merchantId?: number; 
+  merchantId?: number;
 }
 
 @Component({
@@ -33,18 +33,18 @@ interface MarketplaceMerchant {
 export class DiscoverComponent implements OnInit, OnDestroy {
 
   // ── Merchant state ────────────────────────────────────────────────────────
-  loading     = false;
+  loading = false;
   liveLoading = false;
   liveError: string | null = null;
 
-  query          = '';
+  query = '';
   activeCategory = 'All';
-  tps            = 2847;
+  tps = 2847;
 
-  featuredMerchants:    FeaturedMerchant[]   = [];
-  liveMerchants:        PublicMerchant[]      = [];
+  featuredMerchants: FeaturedMerchant[] = [];
+  liveMerchants: PublicMerchant[] = [];
   marketplaceMerchants: MarketplaceMerchant[] = [];
-  filteredMerchants:    MarketplaceMerchant[] = [];
+  filteredMerchants: MarketplaceMerchant[] = [];
 
   categories: string[] = [
     'All', 'Live Network', 'Showcase',
@@ -55,21 +55,21 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   profilesLoading = false;
   profilesError: string | null = null;
   profiles: PublicProfile[] = [];
-  profileSearch  = '';
+  profileSearch = '';
   profileCategory: ProfileCategory | 'All' = 'All';
 
 
   readonly profileCategories: Array<{ value: ProfileCategory | 'All'; label: string }> = [
-    { value: 'All',               label: 'All Builders'  },
-    { value: 'BACKEND_DEVELOPER', label: 'Backend'       },
-    { value: 'FRONTEND_DEVELOPER',label: 'Frontend'      },
-    { value: 'FULLSTACK_DEVELOPER',label: 'Full Stack'   },
-    { value: 'DEVOPS',            label: 'DevOps'        },
-    { value: 'BLOCKCHAIN_WEB3',   label: 'Web3'          },
-    { value: 'DATA_ML',           label: 'Data / ML'     },
-    { value: 'DESIGNER',          label: 'Designer'      },
-    { value: 'BUSINESS_FOUNDER',  label: 'Founder'       },
-    { value: 'AGENCY_STUDIO',     label: 'Agency'        },
+    { value: 'All', label: 'All Builders' },
+    { value: 'BACKEND_DEVELOPER', label: 'Backend' },
+    { value: 'FRONTEND_DEVELOPER', label: 'Frontend' },
+    { value: 'FULLSTACK_DEVELOPER', label: 'Full Stack' },
+    { value: 'DEVOPS', label: 'DevOps' },
+    { value: 'BLOCKCHAIN_WEB3', label: 'Web3' },
+    { value: 'DATA_ML', label: 'Data / ML' },
+    { value: 'DESIGNER', label: 'Designer' },
+    { value: 'BUSINESS_FOUNDER', label: 'Founder' },
+    { value: 'AGENCY_STUDIO', label: 'Agency' },
   ];
 
   readonly CATEGORY_LABELS = CATEGORY_LABELS;
@@ -103,12 +103,12 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   private tpsTimer?: number;
 
   constructor(
-    public  readonly router:               Router,
-    public  readonly authService:          AuthService,
-    private readonly discoverService:      DiscoverService,
+    public readonly router: Router,
+    public readonly authService: AuthService,
+    private readonly discoverService: DiscoverService,
     private readonly publicProfileService: PublicProfileService,
-    private readonly cdr:                  ChangeDetectorRef,
-  ) {}
+    private readonly cdr: ChangeDetectorRef,
+  ) { }
 
   ngOnInit(): void {
     this.loadFeaturedMerchants();
@@ -127,12 +127,12 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   loadProfiles(): void {
     this.profilesLoading = true;
-    this.profilesError   = null;
+    this.profilesError = null;
     const cat = this.profileCategory === 'All' ? undefined : this.profileCategory;
-    const q   = this.profileSearch.trim() || undefined;
+    const q = this.profileSearch.trim() || undefined;
     this.publicProfileService.listProfiles(cat, q).subscribe({
       next: (data) => { this.profiles = data; this.profilesLoading = false; },
-      error: ()    => { this.profilesError = 'Failed to load profiles.'; this.profilesLoading = false; },
+      error: () => { this.profilesError = 'Failed to load profiles.'; this.profilesLoading = false; },
     });
   }
 
@@ -152,7 +152,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   getProfileInitials(profile: PublicProfile): string {
-    const name  = profile.displayName || profile.githubUsername || '?';
+    const name = profile.displayName || profile.githubUsername || '?';
     const words = name.trim().split(/\s+/).filter(Boolean);
     if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
     return name.slice(0, 2).toUpperCase();
@@ -176,7 +176,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   onMerchantDetail(merchantId: number): void {
     this.router.navigate(['/merchant', merchantId]);
   }
-  
+
   onMerchantDetailFromString(merchantId: string): void {
     this.onMerchantDetail(Number(merchantId));
   }
@@ -195,15 +195,15 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   loadFeaturedMerchants(): void {
     this.loading = true;
     this.featuredMerchants = [
-      { id: 'featured-1', name: 'Helio Store',    slug: 'helio',   description: 'Digital goods store accepting Solana Pay.',       category: 'Store'  },
-      { id: 'featured-2', name: 'Star Atlas',     slug: 'staratl', description: 'Open-world space exploration MMO on Solana.',     category: 'Gaming' },
-      { id: 'featured-3', name: 'Magic Eden Lab', slug: 'melab',   description: 'NFT drops and collectibles marketplace.',         category: 'Art'    },
-      { id: 'featured-4', name: 'Solana Sushi',   slug: 'sushi',   description: 'Pay your tab with SOL — instant settlement.',     category: 'Food'   },
-      { id: 'featured-5', name: 'Phantom Tools',  slug: 'phantom', description: 'Developer tooling and SDKs for Web3 builders.',   category: 'Tech'   },
-      { id: 'featured-6', name: 'Audius Live',    slug: 'audius',  description: 'Independent artists, paid directly per stream.',  category: 'Music'  },
-      { id: 'featured-7', name: 'Tensor Trade',   slug: 'tensor',  description: 'Pro-grade NFT trading terminal.',                 category: 'Art'    },
-      { id: 'featured-8', name: 'Jito Coffee',    slug: 'jito',    description: 'Specialty roasters — pay with USDC.',             category: 'Food'   },
-      { id: 'featured-9', name: 'Backpack Build', slug: 'backpck', description: 'Builder collective shipping xNFT apps.',          category: 'Tech'   },
+      { id: 'featured-1', name: 'Helio Store', slug: 'helio', description: 'Digital goods store accepting Solana Pay.', category: 'Store' },
+      { id: 'featured-2', name: 'Star Atlas', slug: 'staratl', description: 'Open-world space exploration MMO on Solana.', category: 'Gaming' },
+      { id: 'featured-3', name: 'Magic Eden Lab', slug: 'melab', description: 'NFT drops and collectibles marketplace.', category: 'Art' },
+      { id: 'featured-4', name: 'Solana Sushi', slug: 'sushi', description: 'Pay your tab with SOL — instant settlement.', category: 'Food' },
+      { id: 'featured-5', name: 'Phantom Tools', slug: 'phantom', description: 'Developer tooling and SDKs for Web3 builders.', category: 'Tech' },
+      { id: 'featured-6', name: 'Audius Live', slug: 'audius', description: 'Independent artists, paid directly per stream.', category: 'Music' },
+      { id: 'featured-7', name: 'Tensor Trade', slug: 'tensor', description: 'Pro-grade NFT trading terminal.', category: 'Art' },
+      { id: 'featured-8', name: 'Jito Coffee', slug: 'jito', description: 'Specialty roasters — pay with USDC.', category: 'Food' },
+      { id: 'featured-9', name: 'Backpack Build', slug: 'backpck', description: 'Builder collective shipping xNFT apps.', category: 'Tech' },
     ];
     this.loading = false;
     this.rebuildMarketplace();
@@ -211,17 +211,17 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   loadLiveMerchants(): void {
     this.liveLoading = true;
-    this.liveError   = null;
+    this.liveError = null;
     this.discoverService.getPublicMerchants().subscribe({
       next: (data) => {
         this.liveMerchants = data || [];
-        this.liveLoading   = false;
+        this.liveLoading = false;
         this.rebuildMarketplace();
       },
       error: () => {
-        this.liveError     = 'Failed to load live merchants.';
+        this.liveError = 'Failed to load live merchants.';
         this.liveMerchants = [];
-        this.liveLoading   = false;
+        this.liveLoading = false;
         this.rebuildMarketplace();
       },
     });
@@ -229,7 +229,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   rebuildMarketplace(): void {
     const live: MarketplaceMerchant[] = this.liveMerchants.map((m) => ({
-      id: `live-${m.id}`,merchantId: m.id, name: m.name, slug: m.slug,
+      id: `live-${m.id}`, merchantId: m.id, name: m.name, slug: m.slug,
       description: m.description || 'Accepting Solana Pay payments through RevenueSync.',
       avatarUrl: m.avatarUrl, category: 'Live Network', source: 'LIVE' as MerchantSource,
     }));
@@ -251,7 +251,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       const matchCat =
         this.activeCategory === 'All' ||
         (this.activeCategory === 'Live Network' && m.source === 'LIVE') ||
-        (this.activeCategory === 'Showcase'     && m.source === 'FEATURED') ||
+        (this.activeCategory === 'Showcase' && m.source === 'FEATURED') ||
         m.category === this.activeCategory;
       const matchQ = !q ||
         m.name.toLowerCase().includes(q) || m.slug.toLowerCase().includes(q) ||
@@ -262,9 +262,9 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   getCategoryCount(cat: string): number {
-    if (cat === 'All')          return this.marketplaceMerchants.length;
+    if (cat === 'All') return this.marketplaceMerchants.length;
     if (cat === 'Live Network') return this.marketplaceMerchants.filter((m) => m.source === 'LIVE').length;
-    if (cat === 'Showcase')     return this.marketplaceMerchants.filter((m) => m.source === 'FEATURED').length;
+    if (cat === 'Showcase') return this.marketplaceMerchants.filter((m) => m.source === 'FEATURED').length;
     return this.marketplaceMerchants.filter((m) => m.category === cat).length;
   }
 
@@ -274,7 +274,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     if (explicit && this.categoryColors[explicit]) {
       this.merchantCategoryCache.set(name, explicit); return explicit;
     }
-    const cats   = ['Store', 'Gaming', 'Art', 'Food', 'Tech', 'Music'];
+    const cats = ['Store', 'Gaming', 'Art', 'Food', 'Tech', 'Music'];
     const picked = cats[this.hash(name) % cats.length];
     this.merchantCategoryCache.set(name, picked);
     return picked;
@@ -290,15 +290,15 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   getTxCount(m: MarketplaceMerchant): string {
-    const seed  = `${m.source}-${m.slug}-${m.id}`;
-    const base  = m.source === 'LIVE' ? 3   : 120;
+    const seed = `${m.source}-${m.slug}-${m.id}`;
+    const base = m.source === 'LIVE' ? 3 : 120;
     const range = m.source === 'LIVE' ? 420 : 9000;
     return ((this.hash(seed) % range) + base).toLocaleString();
   }
 
-  getSourceLabel(m: MarketplaceMerchant):       string { return m.source === 'LIVE' ? 'LIVE' : 'FEATURED'; }
+  getSourceLabel(m: MarketplaceMerchant): string { return m.source === 'LIVE' ? 'LIVE' : 'FEATURED'; }
   getMerchantMetaLabel(m: MarketplaceMerchant): string { return m.source === 'LIVE' ? 'merchant' : 'showcase'; }
-  padIndex(index: number):                      string { return String(index + 1).padStart(2, '0'); }
+  padIndex(index: number): string { return String(index + 1).padStart(2, '0'); }
 
   scrollTo(id: string): void {
     if (id === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -310,14 +310,20 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  goToMyProfile():      void { this.router.navigate(['/profile']);           }
+  goToMyProfile(): void { this.router.navigate(['/profile']); }
   goToBuilder(slug: string): void { this.router.navigate(['/u', slug]); }
-  goToLanding():        void { this.router.navigate(['/']);                  }
-  goToLogin():          void { this.router.navigate(['/login']);             }
-  goToRegister():       void { this.router.navigate(['/register']);          }
-  goToMyPurchases():    void { this.router.navigate(['/buyer/history']);     }
-  goToMyStore():        void { this.router.navigate(['/merchant/dashboard']);}
-  goToAdminDashboard(): void { this.router.navigate(['/dashboard']);         }
+  goToLanding(): void { this.router.navigate(['/']); }
+  goToLogin(): void { this.router.navigate(['/login']); }
+  goToRegister(): void { this.router.navigate(['/register']); }
+  goToMyPurchases(): void { this.router.navigate(['/buyer/history']); }
+  goToMyStore(): void {
+    if (this.authService.getHasMerchants()) {
+      this.router.navigate(['/merchant/dashboard']);
+    } else {
+      this.router.navigate(['/buyer/dashboard']);
+    }
+  }
+  goToAdminDashboard(): void { this.router.navigate(['/dashboard']); }
 
   /** @deprecated Use onPayNow(m.slug). */
   payNow(merchant: MarketplaceMerchant): void {
