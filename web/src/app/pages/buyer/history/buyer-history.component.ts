@@ -114,10 +114,13 @@ export class BuyerHistoryComponent implements OnInit {
       this.router.navigate(['/dashboard']);
       return;
     }
-
-    this.router.navigate(['/merchant/dashboard']);
+    if (this.authService.getHasMerchants()) {
+      this.router.navigate(['/merchant/dashboard']);
+    } else {
+      this.router.navigate(['/buyer/dashboard']);
+    }
   }
-
+  
   statusClass(status: string): string {
     return status.toLowerCase();
   }
