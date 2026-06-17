@@ -17,6 +17,7 @@
         <span>Dashboard</span>
       </a>
 
+      @if (profile?.hasMerchants) {
       <a class="sidebar-link" [class.active]="isActive('/merchant/payments')" (click)="goTo('/merchant/payments')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <rect x="2" y="6" width="20" height="13" rx="1" />
@@ -24,6 +25,7 @@
         </svg>
         <span>Payments</span>
       </a>
+      }
 
       <a class="sidebar-link" (click)="goTo('/discover')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -41,6 +43,7 @@
         <span>My Purchases</span>
       </a>
 
+      @if (profile?.hasMerchants) {
       <a class="sidebar-link" (click)="showInbox()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
@@ -50,7 +53,9 @@
         <span class="badge">{{ unreadCount }}</span>
         }
       </a>
+      }
 
+      @if (profile?.hasMerchants) {
       <div class="sidebar-divider"></div>
       <div class="sidebar-section">/ payments</div>
 
@@ -64,9 +69,15 @@
         <span>Solana Pay</span>
         <span class="badge sol-badge">SOL</span>
       </a>
+      }
     </nav>
 
     <div class="sidebar-foot">
+      @if (!profile?.hasMerchants) {
+      <button class="ghost-action" type="button" (click)="goTo('/buyer/dashboard')">
+        ← Back to My Dashboard
+      </button>
+      }
       <button class="danger-btn" type="button" (click)="deleteAccount()">
         Deactivate account
       </button>
@@ -147,13 +158,12 @@
             <p>Enter the amount in SOL to request from the buyer.</p>
             <label>
               <span>Amount (SOL)</span>
-              <input type="number" [(ngModel)]="paymentRequestAmount"
-                placeholder="0.05" step="0.001" min="0.000000001" />
+              <input type="number" [(ngModel)]="paymentRequestAmount" placeholder="0.05" step="0.001"
+                min="0.000000001" />
             </label>
             <div class="modal-actions">
               <button class="ghost-action" (click)="closePaymentModal()">Cancel</button>
-              <button class="primary-action small"
-                (click)="sendPaymentRequest()"
+              <button class="primary-action small" (click)="sendPaymentRequest()"
                 [disabled]="!paymentRequestAmount || paymentRequestLoading">
                 {{ paymentRequestLoading ? 'Sending...' : 'Send Request' }}
               </button>
