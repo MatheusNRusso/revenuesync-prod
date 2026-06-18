@@ -2,7 +2,6 @@
   <div class="chat-container">
     <div class="chat-header">
       <h2>[ contact ]</h2>
-
       <span class="online-badge connected">🟢 Online</span>
     </div>
 
@@ -13,11 +12,28 @@
         </div>
       }
       @for (msg of messages; track msg.id) {
-        <div class="message" [class.own]="msg.senderId === buyerId">
-          <span class="sender-name">{{ msg.senderName }}</span>
-          <p class="message-content">{{ msg.content }}</p>
-          <span class="timestamp">{{ msg.createdAt | date:'short' }}</span>
-        </div>
+        @if (msg.messageType === 'PAYMENT_REQUEST') {
+          <div class="message payment-request" [class.own]="msg.senderId === buyerId">
+            <span class="sender-name">{{ msg.senderName }}</span>
+            <div class="payment-card">
+              <span class="payment-label">◎ Payment Request</span>
+              <span class="payment-amount">{{ msg.paymentAmountSol }} SOL</span>
+              @if (msg.senderId !== buyerId) {
+                <button class="btn-pay" (click)="onPaymentRequest(msg)">
+                  Pay Now →
+                </button>
+              }
+              <span class="payment-status">{{ msg.paymentStatus }}</span>
+            </div>
+            <span class="timestamp">{{ msg.createdAt | date:'short' }}</span>
+          </div>
+        } @else {
+          <div class="message" [class.own]="msg.senderId === buyerId">
+            <span class="sender-name">{{ msg.senderName }}</span>
+            <p class="message-content">{{ msg.content }}</p>
+            <span class="timestamp">{{ msg.createdAt | date:'short' }}</span>
+          </div>
+        }
       }
     </div>
 
