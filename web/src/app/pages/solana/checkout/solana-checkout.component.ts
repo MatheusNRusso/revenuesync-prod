@@ -16,76 +16,76 @@ export type CheckoutContext = 'buyer' | 'merchant';
 type PaymentStatus = 'IDLE' | 'CREATING' | 'PENDING' | 'CONFIRMED' | 'EXPIRED' | 'FAILED';
 
 interface CreatePaymentResponse {
-  reference:       string;
-  solanaPayUrl:    string;
-  status:          string;
-  amount:          string;
-  currency:        string;
+  reference: string;
+  solanaPayUrl: string;
+  status: string;
+  amount: string;
+  currency: string;
   recipientWallet: string;
-  expiresAt:       string;
+  expiresAt: string;
 }
 
 interface StatusResponse {
-  reference:   string;
-  status:      string;
+  reference: string;
+  status: string;
   txSignature: string | null;
-  paymentId:   number | null;
+  paymentId: number | null;
   confirmedAt: string | null;
-  expiresAt:   string;
+  expiresAt: string;
 }
 
 interface MerchantInfo {
-  id:          number;
-  name:        string;
-  slug:        string;
+  id: number;
+  name: string;
+  slug: string;
   description: string;
-  avatarUrl:   string;
+  avatarUrl: string;
 }
 
 @Component({
-  selector:    'app-solana-checkout',
-  standalone:  true,
-  imports:     [CommonModule, FormsModule],
+  selector: 'app-solana-checkout',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './solana-checkout.component.html',
-  styleUrls:   ['./solana-checkout.component.scss'],
+  styleUrls: ['./solana-checkout.component.scss'],
 })
 export class SolanaCheckoutComponent implements OnInit, OnDestroy {
 
-  private http   = inject(HttpClient);
-  private cdr    = inject(ChangeDetectorRef);
-  private route  = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
 
   // ── Query params ───────────────────────────────────────────────────────────
-  slug:            string | null   = null;
+  slug: string | null = null;
   checkoutContext: CheckoutContext = 'merchant';
 
   // ── Merchant ───────────────────────────────────────────────────────────────
-  merchant:        MerchantInfo | null = null;
-  loadingMerchant  = true;
-  merchantError    = '';
+  merchant: MerchantInfo | null = null;
+  loadingMerchant = true;
+  merchantError = '';
 
   // ── Payment state ──────────────────────────────────────────────────────────
-  status:       PaymentStatus    = 'IDLE';
-  reference     = '';
-  solanaPayUrl  = '';
-  amount        = '';
-  currency      = 'SOL';
+  status: PaymentStatus = 'IDLE';
+  reference = '';
+  solanaPayUrl = '';
+  amount = '';
+  currency = 'SOL';
 
   /**
    * Optional amount override entered by merchant or admin before generating QR.
    * If set, it is sent to the backend and overrides the merchant's defaultAmountSol.
    * Buyers cannot set this — the field is only shown in merchant context.
    */
-  customAmount  = '';
-  txSignature:  string | null = null;
-  confirmedAt:  string | null = null;
-  errorMsg      = '';
-  timeLeft      = 0;
-  copied        = false;
+  customAmount = '';
+  txSignature: string | null = null;
+  confirmedAt: string | null = null;
+  errorMsg = '';
+  timeLeft = 0;
+  copied = false;
 
-  private pollSub?:  Subscription;
+  private pollSub?: Subscription;
   private timerSub?: Subscription;
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -97,12 +97,16 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
     const rawContext = this.route.snapshot.queryParamMap.get('context');
     this.checkoutContext = rawContext === 'buyer' ? 'buyer' : 'merchant';
 
+    const presetAmount = this.route.snapshot.queryParamMap.get('amount');
+    if (presetAmount) {
+      this.customAmount = presetAmount;
+    }
+
     if (!this.slug) {
-      this.merchantError  = 'No merchant slug provided.';
+      this.merchantError = 'No merchant slug provided.';
       this.loadingMerchant = false;
       return;
     }
-
     this.loadMerchant(this.slug);
   }
 
@@ -118,12 +122,12 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
   private loadMerchant(slug: string): void {
     this.http.get<MerchantInfo>(`/api/public/merchants/${slug}`).subscribe({
       next: (m) => {
-        this.merchant        = m;
+        this.merchant = m;
         this.loadingMerchant = false;
         this.cdr.detectChanges();
       },
       error: () => {
-        this.merchantError   = 'Merchant not found.';
+        this.merchantError = 'Merchant not found.';
         this.loadingMerchant = false;
         this.cdr.detectChanges();
       }
@@ -142,7 +146,7 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
   createPayment(): void {
     if (!this.slug) return;
 
-    this.status   = 'CREATING';
+    this.status = 'CREATING';
     this.errorMsg = '';
 
     const body = (this.isMerchantContext && this.customAmount && +this.customAmount > 0)
@@ -153,18 +157,18 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
       `/api/public/pay/${this.slug}`, body
     ).subscribe({
       next: (res) => {
-        this.reference    = res.reference;
+        this.reference = res.reference;
         this.solanaPayUrl = res.solanaPayUrl;
-        this.amount       = res.amount;
-        this.currency     = res.currency;
-        this.status       = 'PENDING';
+        this.amount = res.amount;
+        this.currency = res.currency;
+        this.status = 'PENDING';
         this.generateQrCode(res.solanaPayUrl);
         this.startCountdown();
         this.startPolling();
         this.cdr.detectChanges();
       },
       error: () => {
-        this.status   = 'IDLE';
+        this.status = 'IDLE';
         this.errorMsg = 'Failed to create payment. Try again.';
         this.cdr.detectChanges();
       }
@@ -215,7 +219,7 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (res) => {
         if (res.status !== 'PENDING') {
-          this.status      = res.status as PaymentStatus;
+          this.status = res.status as PaymentStatus;
           this.txSignature = res.txSignature;
           this.confirmedAt = res.confirmedAt;
           this.pollSub?.unsubscribe();
@@ -223,7 +227,7 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -256,16 +260,16 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
   reset(): void {
     this.pollSub?.unsubscribe();
     this.timerSub?.unsubscribe();
-    this.status      = 'IDLE';
-    this.reference   = '';
+    this.status = 'IDLE';
+    this.reference = '';
     this.solanaPayUrl = '';
-    this.txSignature  = null;
-    this.confirmedAt  = null;
-    this.errorMsg     = '';
-    this.amount       = '';
+    this.txSignature = null;
+    this.confirmedAt = null;
+    this.errorMsg = '';
+    this.amount = '';
     this.customAmount = '';
-    this.timeLeft     = 0;
-    this.copied       = false;
+    this.timeLeft = 0;
+    this.copied = false;
     this.cdr.detectChanges();
   }
 
@@ -273,15 +277,15 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
     this.pollSub?.unsubscribe();
     this.timerSub?.unsubscribe();
 
-    this.status       = 'IDLE';
-    this.reference    = '';
+    this.status = 'IDLE';
+    this.reference = '';
     this.solanaPayUrl = '';
-    this.txSignature  = null;
-    this.confirmedAt  = null;
-    this.errorMsg     = '';
-    this.amount       = '';
-    this.timeLeft     = 0;
-    this.copied       = false;
+    this.txSignature = null;
+    this.confirmedAt = null;
+    this.errorMsg = '';
+    this.amount = '';
+    this.timeLeft = 0;
+    this.copied = false;
 
     const container = document.getElementById('checkout-qr-container');
     if (container) {
@@ -291,14 +295,14 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
     this.goBack();
   }
 
-  goToDiscover():  void { this.router.navigate(['/discover']); }
+  goToDiscover(): void { this.router.navigate(['/discover']); }
   goToDashboard(): void { this.router.navigate(['/merchant/dashboard']); }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Template helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  get isBuyerContext():    boolean { return this.checkoutContext === 'buyer'; }
+  get isBuyerContext(): boolean { return this.checkoutContext === 'buyer'; }
   get isMerchantContext(): boolean { return this.checkoutContext === 'merchant'; }
 
   get merchantInitials(): string {

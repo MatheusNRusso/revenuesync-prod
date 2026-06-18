@@ -45,12 +45,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   onPaymentRequest(msg: ChatMessageResponse): void {
     this.router.navigate(['/solana/checkout'], {
       queryParams: {
-        token: msg.paymentToken,
+        slug: this.conversation?.merchantSlug,
+        context: 'buyer',
         amount: msg.paymentAmountSol
       }
     });
   }
-
+  
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
