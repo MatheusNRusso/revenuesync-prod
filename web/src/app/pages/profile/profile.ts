@@ -41,6 +41,8 @@ export class ProfileComponent implements OnInit {
   passwordError: string | null = null;
   passwordSuccess: string | null = null;
 
+  showPasswordForm = false;
+
   passwordForm = {
     currentPassword: '',
     newPassword: '',
@@ -82,7 +84,7 @@ export class ProfileComponent implements OnInit {
         this.hasPassword = res.hasPassword;
         this.cdr.detectChanges();
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -188,6 +190,15 @@ export class ProfileComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  togglePasswordForm(): void {
+    this.showPasswordForm = !this.showPasswordForm;
+    if (!this.showPasswordForm) {
+      this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+      this.passwordError = null;
+      this.passwordSuccess = null;
+    }
   }
 
   connectGitHub(): void {

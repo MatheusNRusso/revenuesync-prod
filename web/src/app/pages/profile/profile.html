@@ -64,44 +64,48 @@
           </button>
         </div>
 
-        <!-- Password Section -->
-        <div class="password-section">
-          <div class="form-header">
-            <h2 class="form-title">{{ hasPassword ? 'Change Password' : 'Set Password' }}</h2>
+        <!-- Password Card (collapsible) -->
+        <div class="password-card">
+          <button class="password-card-toggle" (click)="togglePasswordForm()">
+            <span>{{ hasPassword ? 'Change Password' : 'Set Password' }}</span>
+            <span class="toggle-icon">{{ showPasswordForm ? '▲' : '▼' }}</span>
+          </button>
+
+          @if (showPasswordForm) {
+          <div class="password-card-body">
             <p class="form-subtitle">
               {{ hasPassword ? 'Update your current password.' : 'Set a password to login without GitHub.' }}
             </p>
-          </div>
 
-          <div class="form-grid">
             @if (hasPassword) {
             <div class="form-field">
               <label>Current password</label>
               <input type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="Current password" />
             </div>
             }
+
             <div class="form-field">
               <label>New password</label>
               <input type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Min. 8 characters" />
             </div>
+
             <div class="form-field">
               <label>Confirm new password</label>
               <input type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Repeat new password" />
             </div>
-          </div>
 
-          @if (passwordError) {
-          <div class="alert alert-error">{{ passwordError }}</div>
-          }
-          @if (passwordSuccess) {
-          <div class="alert alert-success">{{ passwordSuccess }}</div>
-          }
+            @if (passwordError) {
+            <div class="alert alert-error">{{ passwordError }}</div>
+            }
+            @if (passwordSuccess) {
+            <div class="alert alert-success">{{ passwordSuccess }}</div>
+            }
 
-          <div class="form-actions">
             <button class="btn-save" [disabled]="savingPassword" (click)="savePassword()">
               {{ savingPassword ? 'Saving...' : (hasPassword ? 'Change Password' : 'Set Password') }}
             </button>
           </div>
+          }
         </div>
 
       </aside>
