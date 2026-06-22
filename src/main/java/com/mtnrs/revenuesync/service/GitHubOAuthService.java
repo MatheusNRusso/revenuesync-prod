@@ -2,6 +2,7 @@ package com.mtnrs.revenuesync.service;
 
 import com.mtnrs.revenuesync.domain.User;
 import com.mtnrs.revenuesync.domain.enums.UserRole;
+import com.mtnrs.revenuesync.repository.UserPublicProfileRepository;
 import com.mtnrs.revenuesync.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +19,11 @@ import java.util.UUID;
 @Slf4j
 public class GitHubOAuthService {
 
-    private final UserRepository       userRepository;
-    private final JwtService           jwtService;
-    private final PasswordEncoder      passwordEncoder;
-    private final PublicProfileService publicProfileService;
+    private final UserRepository              userRepository;
+    private final JwtService                  jwtService;
+    private final PasswordEncoder             passwordEncoder;
+    private final PublicProfileService        publicProfileService;
+    private final UserPublicProfileRepository publicProfileRepository;
 
     @Transactional
     public String handleOAuthSuccess(Authentication authentication) {
@@ -41,17 +43,22 @@ public class GitHubOAuthService {
         final String finalLogin = login.trim();
 
         // ── Upsert user ───────────────────────────────────────────────────────
-        User user = userRepository.findByEmail(finalEmail)
-                .orElseGet(() -> {
-                    User newUser = User.of(
-                            finalLogin,
-                            finalEmail,
-                            passwordEncoder.encode(UUID.randomUUID().toString()),
-                            UserRole.USER
-                    );
-                    newUser.markAsGithubUser();
-                    return userRepository.save(newUser);
-                });
+        // 1. Try to find by githubUsername (handles email change scenario)
+        // 2. Fallback to email lookup
+        // 3. Create new user if not found
+        User user = publicProfileRepository.findByGithubUsername(finalLogin)
+                .map(profile -> profile.getUser())
+                .orElseGet(() -> userRepository.findByEmail(finalEmail)
+                        .orElseGet(() -> {
+                            User newUser = User.of(
+                                    finalLogin,
+                                    finalEmail,
+                                    passwordEncoder.encode(UUID.randomUUID().toString()),
+                                    UserRole.USER
+                            );
+                            newUser.markAsGithubUser();
+                            return userRepository.save(newUser);
+                        }));
 
         // Mark existing users as GitHub users if not already marked
         if (!user.isGithubUser()) {
