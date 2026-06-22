@@ -64,6 +64,15 @@
           </button>
         </div>
 
+        <!-- Login email — visible only to authenticated user -->
+        @if (loginEmail) {
+        <div class="login-email-card">
+          <span class="login-email-label">Login email</span>
+          <span class="login-email-value">{{ loginEmail }}</span>
+          <span class="login-email-hint">Use this email to sign in with password.</span>
+        </div>
+        }
+
         <!-- Password Card (collapsible) -->
         <div class="password-card">
           <button class="password-card-toggle" (click)="togglePasswordForm()">

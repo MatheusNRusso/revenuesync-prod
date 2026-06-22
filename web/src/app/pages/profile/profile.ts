@@ -40,8 +40,8 @@ export class ProfileComponent implements OnInit {
   savingPassword = false;
   passwordError: string | null = null;
   passwordSuccess: string | null = null;
-
   showPasswordForm = false;
+  loginEmail: string | null = null;
 
   passwordForm = {
     currentPassword: '',
@@ -84,7 +84,15 @@ export class ProfileComponent implements OnInit {
         this.hasPassword = res.hasPassword;
         this.cdr.detectChanges();
       },
-      error: () => { }
+      error: () => {}
+    });
+
+    this.http.get<{ email: string }>('/api/me/dashboard').subscribe({
+      next: (res) => {
+        this.loginEmail = res.email;
+        this.cdr.detectChanges();
+      },
+      error: () => {}
     });
   }
 
