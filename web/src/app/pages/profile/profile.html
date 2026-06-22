@@ -16,121 +16,160 @@
   <div class="profile-container">
 
     @if (loading) {
-      <div class="state-loading">
-        <span class="accent">$</span> loading profile data<span class="blink">▊</span>
-      </div>
+    <div class="state-loading">
+      <span class="accent">$</span> loading profile data<span class="blink">▊</span>
+    </div>
     } @else {
 
-      <div class="profile-layout">
+    <div class="profile-layout">
 
-        <!-- Left: GitHub card -->
-        <aside class="profile-sidebar">
-          <div class="github-card">
-            @if (profile?.githubAvatarUrl) {
-              <img class="github-avatar" [src]="profile!.githubAvatarUrl" [alt]="profile!.githubUsername" />
+      <!-- Left: GitHub card -->
+      <aside class="profile-sidebar">
+        <div class="github-card">
+          @if (profile?.githubAvatarUrl) {
+          <img class="github-avatar" [src]="profile!.githubAvatarUrl" [alt]="profile!.githubUsername" />
+          } @else {
+          <div class="github-avatar github-avatar-placeholder">
+            <span>{{ (form.displayName || '?').slice(0, 2).toUpperCase() }}</span>
+          </div>
+          }
+
+          <div class="github-info">
+            @if (profile?.githubUsername) {
+            <span class="github-username">{{ profile!.githubUsername }}</span>
+            <div class="github-stats">
+              <span class="gh-stat"><span class="gh-icon">⎇</span> {{ profile!.githubPublicRepos }} repos</span>
+              <span class="gh-stat"><span class="gh-icon">◈</span> {{ profile!.githubFollowers }} followers</span>
+            </div>
+            <a class="btn-github" [href]="profile!.githubProfileUrl" target="_blank" rel="noopener">
+              View GitHub ↗
+            </a>
             } @else {
-              <div class="github-avatar github-avatar-placeholder">
-                <span>{{ (form.displayName || '?').slice(0, 2).toUpperCase() }}</span>
-              </div>
+            <span class="github-username muted">No GitHub connected</span>
+            <p class="github-hint">Connect GitHub to enrich your profile with repos, followers and avatar.</p>
+            <button class="btn-github-connect" (click)="connectGitHub()">
+              Connect GitHub →
+            </button>
             }
+          </div>
+        </div>
 
-            <div class="github-info">
-              @if (profile?.githubUsername) {
-                <span class="github-username">{{ profile!.githubUsername }}</span>
-                <div class="github-stats">
-                  <span class="gh-stat"><span class="gh-icon">⎇</span> {{ profile!.githubPublicRepos }} repos</span>
-                  <span class="gh-stat"><span class="gh-icon">◈</span> {{ profile!.githubFollowers }} followers</span>
-                </div>
-                <a class="btn-github" [href]="profile!.githubProfileUrl" target="_blank" rel="noopener">
-                  View GitHub ↗
-                </a>
-              } @else {
-                <span class="github-username muted">No GitHub connected</span>
-                <p class="github-hint">Connect GitHub to enrich your profile with repos, followers and avatar.</p>
-                <button class="btn-github-connect" (click)="connectGitHub()">
-                  Connect GitHub →
-                </button>
+        <div class="visibility-card">
+          <div class="visibility-header">
+            <span class="visibility-label">Appear in Discover</span>
+            <span class="visibility-hint">{{ form.isPublic ? "visible to everyone" : "hidden" }}</span>
+          </div>
+          <button class="toggle-btn" [class.active]="form.isPublic" (click)="form.isPublic = !form.isPublic">
+            {{ form.isPublic ? "ON" : "OFF" }}
+          </button>
+        </div>
+      </aside>
+
+      <!-- Right: Edit form -->
+      <main class="profile-form-area">
+        <div class="form-header">
+          <h1 class="form-title">Edit Profile</h1>
+          <p class="form-subtitle">Your public profile visible to the RevenueSync network.</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Display name</label>
+            <input type="text" [(ngModel)]="form.displayName" placeholder="Your name" />
+          </div>
+
+          <div class="form-field">
+            <label>Headline</label>
+            <input type="text" [(ngModel)]="form.headline" placeholder="e.g. Backend Developer" />
+          </div>
+
+          <div class="form-field full">
+            <label>Bio</label>
+            <textarea [(ngModel)]="form.bio" placeholder="Short description about you..." rows="4"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label>Location</label>
+            <input type="text" [(ngModel)]="form.location" placeholder="e.g. Brazil" />
+          </div>
+
+          <div class="form-field">
+            <label>Website</label>
+            <input type="text" [(ngModel)]="form.websiteUrl" placeholder="https://..." />
+          </div>
+
+          <div class="form-field">
+            <label>Category</label>
+            <select [(ngModel)]="form.category">
+              @for (cat of profileCategories; track cat.value) {
+              <option [value]="cat.value">{{ cat.label }}</option>
               }
-            </div>
+            </select>
           </div>
 
-          <div class="visibility-card">
-            <div class="visibility-header">
-              <span class="visibility-label">Appear in Discover</span>
-              <span class="visibility-hint">{{ form.isPublic ? "visible to everyone" : "hidden" }}</span>
-            </div>
-            <button
-              class="toggle-btn"
-              [class.active]="form.isPublic"
-              (click)="form.isPublic = !form.isPublic">
-              {{ form.isPublic ? "ON" : "OFF" }}
-            </button>
+          <div class="form-field">
+            <label>Tags <span class="field-hint">comma-separated</span></label>
+            <input type="text" [(ngModel)]="form.tags" placeholder="Java, Spring Boot, PostgreSQL" />
           </div>
-        </aside>
+        </div>
 
-        <!-- Right: Edit form -->
-        <main class="profile-form-area">
-          <div class="form-header">
-            <h1 class="form-title">Edit Profile</h1>
-            <p class="form-subtitle">Your public profile visible to the RevenueSync network.</p>
-          </div>
+        @if (error) {
+        <div class="alert alert-error">{{ error }}</div>
+        }
+        @if (success) {
+        <div class="alert alert-success">{{ success }}</div>
+        }
 
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Display name</label>
-              <input type="text" [(ngModel)]="form.displayName" placeholder="Your name" />
-            </div>
+        <div class="form-actions">
+          <button class="btn-save" [disabled]="saving" (click)="save()">
+            {{ saving ? "Saving..." : "Save profile" }}
+          </button>
+        </div>
+      </main>
 
-            <div class="form-field">
-              <label>Headline</label>
-              <input type="text" [(ngModel)]="form.headline" placeholder="e.g. Backend Developer" />
-            </div>
-
-            <div class="form-field full">
-              <label>Bio</label>
-              <textarea [(ngModel)]="form.bio" placeholder="Short description about you..." rows="4"></textarea>
-            </div>
-
-            <div class="form-field">
-              <label>Location</label>
-              <input type="text" [(ngModel)]="form.location" placeholder="e.g. Brazil" />
-            </div>
-
-            <div class="form-field">
-              <label>Website</label>
-              <input type="text" [(ngModel)]="form.websiteUrl" placeholder="https://..." />
-            </div>
-
-            <div class="form-field">
-              <label>Category</label>
-              <select [(ngModel)]="form.category">
-                @for (cat of profileCategories; track cat.value) {
-                  <option [value]="cat.value">{{ cat.label }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="form-field">
-              <label>Tags <span class="field-hint">comma-separated</span></label>
-              <input type="text" [(ngModel)]="form.tags" placeholder="Java, Spring Boot, PostgreSQL" />
-            </div>
-          </div>
-
-          @if (error) {
-            <div class="alert alert-error">{{ error }}</div>
-          }
-          @if (success) {
-            <div class="alert alert-success">{{ success }}</div>
-          }
-
-          <div class="form-actions">
-            <button class="btn-save" [disabled]="saving" (click)="save()">
-              {{ saving ? "Saving..." : "Save profile" }}
-            </button>
-          </div>
-        </main>
-
-      </div>
+    </div>
     }
+
+    <!-- Password Section -->
+    <div class="password-section">
+      <div class="form-header">
+        <h2 class="form-title">{{ passwordForm.currentPassword !== undefined ? 'Change Password' : 'Set Password' }}
+        </h2>
+        <p class="form-subtitle">
+          {{ hasPassword ? 'Update your current password.' : 'Set a password to login without GitHub.' }}
+        </p>
+      </div>
+
+      <div class="form-grid">
+        @if (hasPassword) {
+        <div class="form-field">
+          <label>Current password</label>
+          <input type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="Current password" />
+        </div>
+        }
+        <div class="form-field">
+          <label>New password</label>
+          <input type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Min. 8 characters" />
+        </div>
+        <div class="form-field">
+          <label>Confirm new password</label>
+          <input type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Repeat new password" />
+        </div>
+      </div>
+
+      @if (passwordError) {
+      <div class="alert alert-error">{{ passwordError }}</div>
+      }
+      @if (passwordSuccess) {
+      <div class="alert alert-success">{{ passwordSuccess }}</div>
+      }
+
+      <div class="form-actions">
+        <button class="btn-save" [disabled]="savingPassword" (click)="savePassword()">
+          {{ savingPassword ? 'Saving...' : (hasPassword ? 'Change Password' : 'Set Password') }}
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>

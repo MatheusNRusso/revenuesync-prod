@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 import { AuthService } from '../../core/services/auth.service';
 import { PublicProfileService } from '../../core/services/public-profile.service';
@@ -34,6 +35,18 @@ export class ProfileComponent implements OnInit {
     isPublic: false,
   };
 
+  // ── Password management ───────────────────────────────────────────────────
+  hasPassword = false;
+  savingPassword = false;
+  passwordError: string | null = null;
+  passwordSuccess: string | null = null;
+
+  passwordForm = {
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  };
+
   readonly profileCategories: Array<{ value: ProfileCategory | ''; label: string }> = [
     { value: '', label: '— select —' },
     { value: 'DEVELOPER', label: 'Developer' },
@@ -55,10 +68,22 @@ export class ProfileComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly publicProfileService: PublicProfileService,
     private readonly cdr: ChangeDetectorRef,
+    private readonly http: HttpClient,
   ) { }
 
   ngOnInit(): void {
     this.loadProfile();
+    this.checkHasPassword();
+  }
+
+  checkHasPassword(): void {
+    this.http.get<{ hasPassword: boolean }>('/api/me/has-password').subscribe({
+      next: (res) => {
+        this.hasPassword = res.hasPassword;
+        this.cdr.detectChanges();
+      },
+      error: () => {}
+    });
   }
 
   loadProfile(): void {
@@ -125,6 +150,46 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  savePassword(): void {
+    if (!this.passwordForm.newPassword || !this.passwordForm.confirmPassword) {
+      this.passwordError = 'Please fill in all password fields.';
+      return;
+    }
+
+    if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
+      this.passwordError = 'Passwords do not match.';
+      return;
+    }
+
+    if (this.passwordForm.newPassword.length < 8) {
+      this.passwordError = 'Password must be at least 8 characters.';
+      return;
+    }
+
+    this.savingPassword = true;
+    this.passwordError = null;
+
+    this.http.patch('/api/me/password', {
+      currentPassword: this.passwordForm.currentPassword || null,
+      newPassword: this.passwordForm.newPassword,
+      confirmPassword: this.passwordForm.confirmPassword
+    }).subscribe({
+      next: () => {
+        this.savingPassword = false;
+        this.passwordSuccess = 'Password updated successfully.';
+        this.hasPassword = true;
+        this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+        this.cdr.detectChanges();
+        setTimeout(() => { this.passwordSuccess = null; this.cdr.detectChanges(); }, 3000);
+      },
+      error: (err) => {
+        this.savingPassword = false;
+        this.passwordError = err?.error?.error || 'Failed to update password.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   connectGitHub(): void {
     window.location.href = '/oauth2/authorization/github';
   }
@@ -138,5 +203,6 @@ export class ProfileComponent implements OnInit {
       this.router.navigate(['/buyer/dashboard']);
     }
   }
+
   isAuthenticated(): boolean { return this.authService.isAuthenticated(); }
 }
