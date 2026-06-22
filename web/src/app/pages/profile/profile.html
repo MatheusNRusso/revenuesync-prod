@@ -23,7 +23,7 @@
 
     <div class="profile-layout">
 
-      <!-- Left: GitHub card -->
+      <!-- Left: GitHub card + Password -->
       <aside class="profile-sidebar">
         <div class="github-card">
           @if (profile?.githubAvatarUrl) {
@@ -63,6 +63,47 @@
             {{ form.isPublic ? "ON" : "OFF" }}
           </button>
         </div>
+
+        <!-- Password Section -->
+        <div class="password-section">
+          <div class="form-header">
+            <h2 class="form-title">{{ hasPassword ? 'Change Password' : 'Set Password' }}</h2>
+            <p class="form-subtitle">
+              {{ hasPassword ? 'Update your current password.' : 'Set a password to login without GitHub.' }}
+            </p>
+          </div>
+
+          <div class="form-grid">
+            @if (hasPassword) {
+            <div class="form-field">
+              <label>Current password</label>
+              <input type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="Current password" />
+            </div>
+            }
+            <div class="form-field">
+              <label>New password</label>
+              <input type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Min. 8 characters" />
+            </div>
+            <div class="form-field">
+              <label>Confirm new password</label>
+              <input type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Repeat new password" />
+            </div>
+          </div>
+
+          @if (passwordError) {
+          <div class="alert alert-error">{{ passwordError }}</div>
+          }
+          @if (passwordSuccess) {
+          <div class="alert alert-success">{{ passwordSuccess }}</div>
+          }
+
+          <div class="form-actions">
+            <button class="btn-save" [disabled]="savingPassword" (click)="savePassword()">
+              {{ savingPassword ? 'Saving...' : (hasPassword ? 'Change Password' : 'Set Password') }}
+            </button>
+          </div>
+        </div>
+
       </aside>
 
       <!-- Right: Edit form -->
@@ -129,47 +170,6 @@
 
     </div>
     }
-
-    <!-- Password Section -->
-    <div class="password-section">
-      <div class="form-header">
-        <h2 class="form-title">{{ passwordForm.currentPassword !== undefined ? 'Change Password' : 'Set Password' }}
-        </h2>
-        <p class="form-subtitle">
-          {{ hasPassword ? 'Update your current password.' : 'Set a password to login without GitHub.' }}
-        </p>
-      </div>
-
-      <div class="form-grid">
-        @if (hasPassword) {
-        <div class="form-field">
-          <label>Current password</label>
-          <input type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="Current password" />
-        </div>
-        }
-        <div class="form-field">
-          <label>New password</label>
-          <input type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Min. 8 characters" />
-        </div>
-        <div class="form-field">
-          <label>Confirm new password</label>
-          <input type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Repeat new password" />
-        </div>
-      </div>
-
-      @if (passwordError) {
-      <div class="alert alert-error">{{ passwordError }}</div>
-      }
-      @if (passwordSuccess) {
-      <div class="alert alert-success">{{ passwordSuccess }}</div>
-      }
-
-      <div class="form-actions">
-        <button class="btn-save" [disabled]="savingPassword" (click)="savePassword()">
-          {{ savingPassword ? 'Saving...' : (hasPassword ? 'Change Password' : 'Set Password') }}
-        </button>
-      </div>
-    </div>
 
   </div>
 </div>
