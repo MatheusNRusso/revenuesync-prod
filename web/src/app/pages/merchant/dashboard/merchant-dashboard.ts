@@ -2,8 +2,8 @@ import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
-// 1. Add inbox top
 import { ChatApiService } from '../../../core/services/chat.service';
 import { ChatComponent } from '../../../shared/components/chat/chat.component';
 import { ConversationResponse } from '../../../core/models/merchant-detail.model';
@@ -31,8 +31,8 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
-
   private readonly chatService = inject(ChatApiService);
+  private readonly http = inject(HttpClient);
 
   profile: MeProfileResponse | null = null;
   dashboard: MeDashboard | null = null;
@@ -57,7 +57,6 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   walletEditError: string | null = null;
   walletEditSuccess: string | null = null;
 
-  // ── Inbox ──────────────────────────────────────────────────────────────────
   activeSection: 'dashboard' | 'inbox' = 'dashboard';
   conversations: ConversationResponse[] = [];
   selectedConversation: ConversationResponse | null = null;
@@ -75,7 +74,6 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   revenueChartLabels: string[] = [];
   revenueChartData: number[] = [];
 
-  // ── Payment Request ─────────────────────────────────────────
   showPaymentModal = false;
   paymentRequestAmount: number | null = null;
   paymentRequestLoading = false;
@@ -102,7 +100,6 @@ export class MerchantDashboard implements OnInit, OnDestroy {
           this.selectedMerchantId = null;
           this.showCreateMerchantForm = true;
           this.resetCharts();
-
           this.loading = false;
           this.cdr.detectChanges();
           return;
@@ -132,7 +129,6 @@ export class MerchantDashboard implements OnInit, OnDestroy {
           const selectedStillExists = this.merchants.some(
             (merchant) => merchant.id === this.selectedMerchantId
           );
-
           if (!selectedStillExists) {
             this.selectedMerchantId = null;
           }
@@ -164,7 +160,6 @@ export class MerchantDashboard implements OnInit, OnDestroy {
       next: (paymentsPage) => {
         this.recentPayments = paymentsPage.content;
         this.generateCharts(this.recentPayments);
-
         this.loading = false;
         this.paymentsLoading = false;
         this.cdr.detectChanges();
@@ -224,7 +219,15 @@ export class MerchantDashboard implements OnInit, OnDestroy {
         this.creatingMerchant = false;
         this.showCreateMerchantForm = false;
         this.resetMerchantForm();
-        this.loadProfile();
+
+        // Refresh JWT so hasMerchants claim is updated
+        this.http.post<{ token: string }>('/api/me/refresh-token', {}).subscribe({
+          next: (res) => {
+            localStorage.setItem('token', res.token);
+            this.router.navigate(['/merchant/dashboard']);
+          },
+          error: () => this.loadProfile()
+        });
       },
       error: (err) => {
         this.merchantCreateError = err?.error?.error || 'Failed to create merchant profile.';
@@ -250,9 +253,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   }
 
   updateMerchantWallet(): void {
-    if (this.editingWalletMerchantId === null) {
-      return;
-    }
+    if (this.editingWalletMerchantId === null) return;
 
     const walletAddress = this.walletEditValue.trim();
 
@@ -272,7 +273,6 @@ export class MerchantDashboard implements OnInit, OnDestroy {
         this.updatingWallet = false;
         this.editingWalletMerchantId = null;
         this.walletEditValue = '';
-
         this.loadProfile();
       },
       error: (err) => {
@@ -285,13 +285,11 @@ export class MerchantDashboard implements OnInit, OnDestroy {
 
   toggleWalletVisibility(merchantId: number, event?: Event): void {
     event?.stopPropagation();
-
     if (this.visibleWalletMerchantIds.has(merchantId)) {
       this.visibleWalletMerchantIds.delete(merchantId);
     } else {
       this.visibleWalletMerchantIds.add(merchantId);
     }
-
     this.cdr.detectChanges();
   }
 
@@ -300,31 +298,17 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   }
 
   formatWallet(walletAddress: string | null | undefined, merchantId: number): string {
-    if (!walletAddress) {
-      return 'No wallet configured';
-    }
-
-    if (this.isWalletVisible(merchantId)) {
-      return walletAddress;
-    }
-
-    if (walletAddress.length <= 12) {
-      return walletAddress;
-    }
-
+    if (!walletAddress) return 'No wallet configured';
+    if (this.isWalletVisible(merchantId)) return walletAddress;
+    if (walletAddress.length <= 12) return walletAddress;
     return `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`;
   }
 
   copyWallet(walletAddress: string | null | undefined, merchantId: number, event?: Event): void {
     event?.stopPropagation();
-
-    if (!walletAddress) {
-      return;
-    }
-
+    if (!walletAddress) return;
     navigator.clipboard.writeText(walletAddress);
     this.copiedWalletMerchantId = merchantId;
-
     setTimeout(() => {
       this.copiedWalletMerchantId = null;
       this.cdr.detectChanges();
@@ -333,32 +317,21 @@ export class MerchantDashboard implements OnInit, OnDestroy {
 
   goToSolanaCheckout(merchant: MerchantDashboardSummary): void {
     this.router.navigate(['/solana/checkout'], {
-      queryParams: {
-        slug: merchant.slug,
-        context: 'merchant'
-      }
+      queryParams: { slug: merchant.slug, context: 'merchant' }
     });
   }
 
   private generateCharts(payments: PaymentResponse[]): void {
     const byDay: Record<string, { count: number; revenue: number }> = {};
-
     payments.forEach((payment) => {
       const day = payment.createdAt.substring(0, 10);
-
-      if (!byDay[day]) {
-        byDay[day] = { count: 0, revenue: 0 };
-      }
-
+      if (!byDay[day]) byDay[day] = { count: 0, revenue: 0 };
       byDay[day].count++;
       byDay[day].revenue += payment.amount;
     });
-
     const sortedDays = Object.keys(byDay).sort();
-
     this.paymentsChartLabels = sortedDays;
     this.paymentsChartData = sortedDays.map((day) => byDay[day].count);
-
     this.revenueChartLabels = sortedDays;
     this.revenueChartData = sortedDays.map((day) => byDay[day].revenue);
   }
@@ -375,21 +348,11 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   }
 
   private createEmptyMerchantForm(): CreateMerchantProfileRequest {
-    return {
-      name: '',
-      email: '',
-      description: '',
-      avatarUrl: '',
-      walletAddress: '',
-      defaultAmountSol: null
-    };
+    return { name: '', email: '', description: '', avatarUrl: '', walletAddress: '', defaultAmountSol: null };
   }
 
   get selectedMerchant(): MerchantDashboardSummary | null {
-    if (this.selectedMerchantId === null) {
-      return null;
-    }
-
+    if (this.selectedMerchantId === null) return null;
     return this.merchants.find((merchant) => merchant.id === this.selectedMerchantId) ?? null;
   }
 
@@ -397,15 +360,9 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     return this.selectedMerchant?.name ?? 'All merchants';
   }
 
-  isActive(path: string): boolean {
-    return this.router.url.startsWith(path);
-  }
+  isActive(path: string): boolean { return this.router.url.startsWith(path); }
+  goTo(path: string): void { this.router.navigate([path]); }
 
-  goTo(path: string): void {
-    this.router.navigate([path]);
-  }
-
-  // ── Inbox ───────────────────────────────────────────────────────────────
   showInbox(): void {
     this.activeSection = 'inbox';
     this.loadConversations();
@@ -446,9 +403,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     this.chatService.closeConversation(conv.id).subscribe({
       next: () => {
         this.conversations = this.conversations.filter(c => c.id !== conv.id);
-        if (this.selectedConversation?.id === conv.id) {
-          this.selectedConversation = null;
-        }
+        if (this.selectedConversation?.id === conv.id) this.selectedConversation = null;
         this.cdr.detectChanges();
       },
       error: () => {
@@ -471,11 +426,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   sendPaymentRequest(): void {
     if (!this.selectedConversation || !this.paymentRequestAmount) return;
     this.paymentRequestLoading = true;
-
-    this.chatService.sendPaymentRequest(
-      this.selectedConversation.id,
-      this.paymentRequestAmount
-    ).subscribe({
+    this.chatService.sendPaymentRequest(this.selectedConversation.id, this.paymentRequestAmount).subscribe({
       next: () => {
         this.paymentRequestLoading = false;
         this.showPaymentModal = false;
@@ -489,9 +440,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     });
   }
 
-  logout(): void {
-    this.authService.logout();
-  }
+  logout(): void { this.authService.logout(); }
 
   deleteAccount(): void {
     if (!confirm("Deactivate your account? You will be logged out immediately.")) return;
@@ -527,9 +476,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     });
   }
 
-  statusClass(status: string): string {
-    return status.toLowerCase();
-  }
+  statusClass(status: string): string { return status.toLowerCase(); }
 
   setTheme(dark: boolean): void {
     this.isDark = dark;
@@ -538,10 +485,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   }
 
   formatAmount(amount: number, currency: string): string {
-    if (currency === 'SOL') {
-      return `◎ ${amount.toFixed(6)}`;
-    }
-
+    if (currency === 'SOL') return `◎ ${amount.toFixed(6)}`;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: currency === 'BRL' ? 'BRL' : 'USD'
@@ -549,9 +493,6 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(amount);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
   }
 }

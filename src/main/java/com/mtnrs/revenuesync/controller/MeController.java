@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.mtnrs.revenuesync.dto.auth.ChangePasswordRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.mtnrs.revenuesync.service.JwtService;
+
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,6 +44,7 @@ public class MeController {
     private final UserRepository userRepository;
     private final PublicProfileService publicProfileService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     // ── Public profile ────────────────────────────────────────────────────────
     @GetMapping("/public-profile")
@@ -287,5 +290,14 @@ public class MeController {
         userRepository.save(user);
 
         return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+    }
+
+    // ── Token refresh ─────────────────────────────────────────────────────────
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@AuthenticationPrincipal User user) {
+        User managed = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        String newToken = jwtService.generateToken(managed);
+        return ResponseEntity.ok(Map.of("token", newToken));
     }
 }
