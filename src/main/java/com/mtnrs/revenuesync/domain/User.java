@@ -38,8 +38,7 @@ public class User implements UserDetails {
     private UserRole role;
 
     /**
-     * Set to true once the user completes the onboarding intent screen
-     * (chose "I want to consume" or "I want to offer my service").
+     * Set to true once the user completes the onboarding intent screen.
      * Prevents the screen from reappearing on subsequent logins.
      */
     @Column(name = "onboarding_completed", nullable = false)
@@ -56,6 +55,14 @@ public class User implements UserDetails {
     @Column(name = "email_verified", nullable = false)
     @Builder.Default
     private boolean emailVerified = false;
+
+    /**
+     * True if this account was created via GitHub OAuth.
+     * Used to determine whether the user has set a real password.
+     */
+    @Column(name = "github_user", nullable = false)
+    @Builder.Default
+    private boolean githubUser = false;
 
     @Column(name = "verification_token", length = 6)
     private String verificationToken;
@@ -83,33 +90,48 @@ public class User implements UserDetails {
 
     // ── Mutators ──────────────────────────────────────────────────────────────
 
-    /**
-     * Marks onboarding as complete. Idempotent — safe to call multiple times.
-     */
     public void completeOnboarding() {
         this.onboardingCompleted = true;
     }
 
     public void deactivate() {
         this.active = false;
-        this.deletedAt = java.time.LocalDateTime.now();
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void markAsGithubUser() {
+        this.githubUser = true;
     }
 
     /**
-     * Sets a 6-digit verification token valid for 24 hours.
+     * Updates the user's password. Expects an already-encoded value.
+     * Also clears the githubUser flag so the user can login with email/password.
      */
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+        this.githubUser = false;
+    }
+
+    /**
+     * Returns true if the user has set a real password.
+     * GitHub OAuth users have githubUser = true until they set a password.
+     */
+    public boolean hasPassword() {
+        return !this.githubUser;
+    }
+
+    public boolean isGithubUser() {
+        return this.githubUser;
+    }
+
     public void setVerificationToken(String token) {
         this.verificationToken = token;
-        this.tokenExpiresAt = java.time.LocalDateTime.now().plusHours(24);
+        this.tokenExpiresAt = LocalDateTime.now().plusHours(24);
     }
 
-    /**
-     * Verifies the token and activates the account.
-     * Returns true if successful, false if token is invalid or expired.
-     */
     public boolean verifyEmail(String token) {
         if (token == null || !token.equals(this.verificationToken)) return false;
-        if (this.tokenExpiresAt == null || java.time.LocalDateTime.now().isAfter(this.tokenExpiresAt)) return false;
+        if (this.tokenExpiresAt == null || LocalDateTime.now().isAfter(this.tokenExpiresAt)) return false;
         this.emailVerified = true;
         this.verificationToken = null;
         this.tokenExpiresAt = null;
@@ -135,9 +157,9 @@ public class User implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    @Override public String   getUsername()              { return email; }
-    @Override public boolean  isAccountNonExpired()      { return true; }
-    @Override public boolean  isAccountNonLocked()       { return true; }
-    @Override public boolean  isCredentialsNonExpired()  { return true; }
-    @Override public boolean  isEnabled()                { return this.active; }
+    @Override public String  getUsername()             { return email; }
+    @Override public boolean isAccountNonExpired()     { return true; }
+    @Override public boolean isAccountNonLocked()      { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled()               { return this.active; }
 }

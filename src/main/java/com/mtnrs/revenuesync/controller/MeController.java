@@ -22,6 +22,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import com.mtnrs.revenuesync.dto.auth.ChangePasswordRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -31,16 +34,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MeController {
 
-    private final PaymentRepository       paymentRepository;
-    private final PaymentMapper           paymentMapper;
-    private final MerchantRepository      merchantRepository;
-    private final MerchantProfileService  merchantProfileService;
+    private final PaymentRepository paymentRepository;
+    private final PaymentMapper paymentMapper;
+    private final MerchantRepository merchantRepository;
+    private final MerchantProfileService merchantProfileService;
     private final SolanaPaymentRepository solanaPaymentRepository;
-    private final UserRepository          userRepository;
-    private final PublicProfileService    publicProfileService;
+    private final UserRepository userRepository;
+    private final PublicProfileService publicProfileService;
+    private final PasswordEncoder passwordEncoder;
 
     // ── Public profile ────────────────────────────────────────────────────────
-
     @GetMapping("/public-profile")
     public ResponseEntity<PublicProfileResponse> getPublicProfile(
             @AuthenticationPrincipal User user
@@ -65,7 +68,6 @@ public class MeController {
     }
 
     // ── Dashboard ─────────────────────────────────────────────────────────────
-
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> dashboard(
             @AuthenticationPrincipal User user
@@ -74,27 +76,27 @@ public class MeController {
 
         var merchantSummaries = merchants.stream()
                 .map(merchant -> {
-                    var totalPayments    = paymentRepository.countByMerchant(merchant);
-                    var totalRevenue     = paymentRepository.sumSucceededAmountByMerchant(merchant);
-                    var totalRevenueSol  = paymentRepository.sumSucceededAmountByMerchantAndCurrency(merchant, "SOL");
+                    var totalPayments = paymentRepository.countByMerchant(merchant);
+                    var totalRevenue = paymentRepository.sumSucceededAmountByMerchant(merchant);
+                    var totalRevenueSol = paymentRepository.sumSucceededAmountByMerchantAndCurrency(merchant, "SOL");
 
                     return Map.<String, Object>of(
-                            "id",              merchant.getId(),
-                            "name",            merchant.getName(),
-                            "email",           merchant.getEmail(),
-                            "slug",            merchant.getSlug(),
-                            "walletAddress",   merchant.getWalletAddress(),
-                            "active",          merchant.isActive(),
-                            "totalPayments",   totalPayments,
-                            "totalRevenue",    totalRevenue    != null ? totalRevenue    : BigDecimal.ZERO,
+                            "id", merchant.getId(),
+                            "name", merchant.getName(),
+                            "email", merchant.getEmail(),
+                            "slug", merchant.getSlug(),
+                            "walletAddress", merchant.getWalletAddress(),
+                            "active", merchant.isActive(),
+                            "totalPayments", totalPayments,
+                            "totalRevenue", totalRevenue != null ? totalRevenue : BigDecimal.ZERO,
                             "totalRevenueSol", totalRevenueSol != null ? totalRevenueSol : BigDecimal.ZERO
                     );
                 })
                 .toList();
 
-        var totalPayments   = merchantSummaries.stream()
+        var totalPayments = merchantSummaries.stream()
                 .mapToLong(s -> ((Number) s.get("totalPayments")).longValue()).sum();
-        var totalRevenue    = merchantSummaries.stream()
+        var totalRevenue = merchantSummaries.stream()
                 .map(s -> (BigDecimal) s.get("totalRevenue"))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         var totalRevenueSol = merchantSummaries.stream()
@@ -102,15 +104,15 @@ public class MeController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return ResponseEntity.ok(Map.of(
-                "userId",          user.getId(),
-                "name",            user.getName(),
-                "email",           user.getEmail(),
-                "hasMerchants",    !merchants.isEmpty(),
-                "totalMerchants",  merchants.size(),
-                "totalPayments",   totalPayments,
-                "totalRevenue",    totalRevenue,
+                "userId", user.getId(),
+                "name", user.getName(),
+                "email", user.getEmail(),
+                "hasMerchants", !merchants.isEmpty(),
+                "totalMerchants", merchants.size(),
+                "totalPayments", totalPayments,
+                "totalRevenue", totalRevenue,
                 "totalRevenueSol", totalRevenueSol,
-                "merchants",       merchantSummaries
+                "merchants", merchantSummaries
         ));
     }
 
@@ -121,8 +123,8 @@ public class MeController {
             @RequestBody CreateMerchantProfileRequest request
     ) {
         try {
-            MerchantProfileResponse response =
-                    merchantProfileService.createMerchantProfile(user, request);
+            MerchantProfileResponse response
+                    = merchantProfileService.createMerchantProfile(user, request);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
@@ -144,7 +146,6 @@ public class MeController {
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
     }
-
 
     // ── Merchant management ───────────────────────────────────────────────────
     @PatchMapping("/merchants/{merchantId}/activate")
@@ -193,7 +194,9 @@ public class MeController {
             Pageable pageable
     ) {
         var merchants = merchantRepository.findAllByUserId(user.getId());
-        if (merchants.isEmpty()) return ResponseEntity.ok(Page.empty(pageable));
+        if (merchants.isEmpty()) {
+            return ResponseEntity.ok(Page.empty(pageable));
+        }
         return ResponseEntity.ok(
                 paymentRepository.findByMerchantIn(merchants, pageable)
                         .map(paymentMapper::toDto)
@@ -208,7 +211,9 @@ public class MeController {
     ) {
         var merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Merchant not found"));
-        if (!merchant.belongsTo(user)) return ResponseEntity.status(403).build();
+        if (!merchant.belongsTo(user)) {
+            return ResponseEntity.status(403).build();
+        }
         return ResponseEntity.ok(
                 paymentRepository.findByMerchant(merchant, pageable)
                         .map(paymentMapper::toDto)
@@ -216,7 +221,6 @@ public class MeController {
     }
 
     // ── Purchases ─────────────────────────────────────────────────────────────
-
     @GetMapping("/purchases")
     public ResponseEntity<List<Map<String, Object>>> purchases(
             @AuthenticationPrincipal User user
@@ -229,14 +233,14 @@ public class MeController {
                             .map(m -> m.getName())
                             .orElse("Unknown merchant");
                     return Map.<String, Object>of(
-                            "reference",    payment.getReference(),
-                            "merchantId",   payment.getMerchantId(),
+                            "reference", payment.getReference(),
+                            "merchantId", payment.getMerchantId(),
                             "merchantName", merchantName,
-                            "amount",       payment.getAmount().toPlainString(),
-                            "currency",     payment.getCurrency(),
-                            "status",       payment.getStatus().name(),
-                            "createdAt",    payment.getCreatedAt() != null ? payment.getCreatedAt().toString() : "",
-                            "confirmedAt",  payment.getConfirmedAt() != null ? payment.getConfirmedAt().toString() : ""
+                            "amount", payment.getAmount().toPlainString(),
+                            "currency", payment.getCurrency(),
+                            "status", payment.getStatus().name(),
+                            "createdAt", payment.getCreatedAt() != null ? payment.getCreatedAt().toString() : "",
+                            "confirmedAt", payment.getConfirmedAt() != null ? payment.getConfirmedAt().toString() : ""
                     );
                 })
                 .toList();
@@ -253,5 +257,35 @@ public class MeController {
         managed.deactivate();
         userRepository.save(managed);
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Password management ───────────────────────────────────────────────────
+    @GetMapping("/has-password")
+    public ResponseEntity<?> hasPassword(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(Map.of("hasPassword", user.hasPassword()));
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<?> changePassword(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Passwords do not match"));
+        }
+
+        // If user already has a real password, require current password
+        if (user.hasPassword() && request.currentPassword() != null) {
+            if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Current password is incorrect"));
+            }
+        }
+
+        user.updatePassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
     }
 }
