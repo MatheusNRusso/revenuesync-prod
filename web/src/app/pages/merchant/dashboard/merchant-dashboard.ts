@@ -27,12 +27,12 @@ import { ChartCardComponent } from '../../../shared/components/chart-card/chart-
   styleUrls: ['./merchant-dashboard.scss']
 })
 export class MerchantDashboard implements OnInit, OnDestroy {
-  private readonly meService    = inject(MeService);
-  private readonly authService  = inject(AuthService);
-  private readonly router       = inject(Router);
-  private readonly cdr          = inject(ChangeDetectorRef);
-  private readonly chatService  = inject(ChatApiService);
-  private readonly http         = inject(HttpClient);
+  private readonly meService = inject(MeService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly chatService = inject(ChatApiService);
+  private readonly http = inject(HttpClient);
 
   profile: MeProfileResponse | null = null;
   dashboard: MeDashboard | null = null;
@@ -184,14 +184,22 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   }
 
   createMerchant(): void {
-    const name          = this.merchantForm.name.trim();
-    const email         = this.merchantForm.email.trim();
+    const name = this.merchantForm.name.trim();
+    const email = this.merchantForm.email.trim();
     const walletAddress = this.merchantForm.walletAddress.trim();
-    const description   = this.merchantForm.description?.trim() || null;
-    const avatarUrl     = this.merchantForm.avatarUrl?.trim() || null;
+    const description = this.merchantForm.description?.trim() || null;
+    const avatarUrl = this.merchantForm.avatarUrl?.trim() || null;
 
     if (!name || !email || !walletAddress) {
       this.merchantCreateError = 'Name, email and wallet address are required.';
+      this.merchantCreateSuccess = null;
+      return;
+    }
+
+    // Validate Solana wallet address (base58, 32-44 chars)
+    const solanaWalletRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    if (!solanaWalletRegex.test(walletAddress)) {
+      this.merchantCreateError = 'Invalid Solana wallet address. Must be base58, 32-44 characters.';
       this.merchantCreateSuccess = null;
       return;
     }
@@ -327,16 +335,16 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     });
     const sortedDays = Object.keys(byDay).sort();
     this.paymentsChartLabels = sortedDays;
-    this.paymentsChartData   = sortedDays.map((day) => byDay[day].count);
-    this.revenueChartLabels  = sortedDays;
-    this.revenueChartData    = sortedDays.map((day) => byDay[day].revenue);
+    this.paymentsChartData = sortedDays.map((day) => byDay[day].count);
+    this.revenueChartLabels = sortedDays;
+    this.revenueChartData = sortedDays.map((day) => byDay[day].revenue);
   }
 
   private resetCharts(): void {
     this.paymentsChartLabels = [];
-    this.paymentsChartData   = [];
-    this.revenueChartLabels  = [];
-    this.revenueChartData    = [];
+    this.paymentsChartData = [];
+    this.revenueChartLabels = [];
+    this.revenueChartData = [];
   }
 
   private resetMerchantForm(): void {
