@@ -123,7 +123,7 @@ public class MeController {
     @PostMapping("/merchant-profile")
     public ResponseEntity<?> createMerchantProfile(
             @AuthenticationPrincipal User user,
-            @RequestBody CreateMerchantProfileRequest request
+            @Valid @RequestBody CreateMerchantProfileRequest request
     ) {
         try {
             MerchantProfileResponse response
