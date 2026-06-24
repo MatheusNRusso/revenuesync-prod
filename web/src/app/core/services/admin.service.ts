@@ -49,4 +49,14 @@ export class AdminService {
   deleteMerchant(merchantId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/merchants/${merchantId}`);
   }
+
+  toggleUser(userId: number, active: boolean): Observable<void> {
+    const action = active ? 'activate' : 'deactivate';
+    return this.http.patch<void>(`${this.apiUrl}/users/${userId}/${action}`, {});
+  }
+
+  toggleMerchant(merchantId: number, active: boolean): Observable<void> {
+    const action = active ? 'activate' : 'deactivate';
+    return this.http.patch<void>(`${this.apiUrl}/merchants/${merchantId}/${action}`, {});
+  }
 }
