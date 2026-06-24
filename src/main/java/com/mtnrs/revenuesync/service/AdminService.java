@@ -17,6 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mtnrs.revenuesync.dto.admin.AdminUserResponse;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -87,8 +89,8 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminPaymentResponse> findPayments() {
         return paymentRepository.findAll(
-                        Sort.by(Sort.Direction.DESC, "createdAt")
-                )
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        )
                 .stream()
                 .map(AdminPaymentResponse::from)
                 .toList();
@@ -97,8 +99,8 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminLeadResponse> findLeads() {
         return leadRepository.findAll(
-                        Sort.by(Sort.Direction.DESC, "createdAt")
-                )
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        )
                 .stream()
                 .map(AdminLeadResponse::from)
                 .toList();
@@ -107,8 +109,8 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminMerchantResponse> findMerchants() {
         return merchantRepository.findAll(
-                        Sort.by(Sort.Direction.DESC, "id")
-                )
+                Sort.by(Sort.Direction.DESC, "id")
+        )
                 .stream()
                 .map(AdminMerchantResponse::from)
                 .toList();
@@ -117,10 +119,32 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<AdminConversionResponse> findConversions() {
         return conversionRepository.findAll(
-                        Sort.by(Sort.Direction.DESC, "createdAt")
-                )
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        )
                 .stream()
                 .map(AdminConversionResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminUserResponse> findUsers() {
+        return userRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(AdminUserResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        userRepository.delete(user);
+    }
+
+    @Transactional
+    public void deleteMerchant(Long merchantId) {
+        var merchant = merchantRepository.findById(merchantId)
+                .orElseThrow(() -> new IllegalArgumentException("Merchant not found: " + merchantId));
+        merchantRepository.delete(merchant);
     }
 }

@@ -45,4 +45,24 @@ public class AdminController {
     public ResponseEntity<List<AdminConversionResponse>> conversions() {
         return ResponseEntity.ok(adminService.findConversions());
     }
+
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<AdminUserResponse>> users() {
+        return ResponseEntity.ok(adminService.findUsers());
+    }
+
+    @DeleteMapping("/users/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        adminService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/merchants/{merchantId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteMerchant(@PathVariable Long merchantId) {
+        adminService.deleteMerchant(merchantId);
+        return ResponseEntity.noContent().build();
+    }
 }
