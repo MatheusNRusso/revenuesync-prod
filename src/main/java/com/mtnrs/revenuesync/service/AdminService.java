@@ -147,4 +147,20 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Merchant not found: " + merchantId));
         merchantRepository.delete(merchant);
     }
+
+    @Transactional
+    public void activateUser(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.activate();
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deactivateUser(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.deactivate();
+        userRepository.save(user);
+    }
 }

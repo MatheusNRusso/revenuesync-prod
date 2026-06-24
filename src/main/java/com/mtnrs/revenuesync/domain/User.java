@@ -99,6 +99,11 @@ public class User implements UserDetails {
         this.deletedAt = LocalDateTime.now();
     }
 
+    public void activate() {
+        this.active = true;
+        this.deletedAt = null;
+    }
+
     public void markAsGithubUser() {
         this.githubUser = true;
     }

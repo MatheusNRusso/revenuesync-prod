@@ -65,4 +65,18 @@ public class AdminController {
         adminService.deleteMerchant(merchantId);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/users/{userId}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> activateUser(@PathVariable Long userId) {
+        adminService.activateUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/users/{userId}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deactivateUser(@PathVariable Long userId) {
+        adminService.deactivateUser(userId);
+        return ResponseEntity.noContent().build();
+    }
 }
