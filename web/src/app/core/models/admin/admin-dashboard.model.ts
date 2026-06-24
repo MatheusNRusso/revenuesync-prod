@@ -66,3 +66,14 @@ export interface AdminDashboard {
   latestMerchants: AdminMerchant[];
   latestConversions: AdminConversion[];
 }
+
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  active: boolean;
+  githubUser: boolean;
+  createdAt: string;
+}

@@ -1,0 +1,171 @@
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-mark"></div>
+      <span>revenue<b>Sync</b></span>
+    </div>
+
+    <div class="sidebar-section">/ navigate</div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" (click)="goTo('/dashboard')">
+        <span>Dashboard</span>
+      </a>
+
+      <a class="sidebar-link active" (click)="goTo('/admin/users')">
+        <span>Users</span>
+        <span class="badge">{{ users.length }}</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/merchants')">
+        <span>Merchants</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/payments')">
+        <span>Payments</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/conversions')">
+        <span>Conversions</span>
+      </a>
+
+      <a class="sidebar-link" (click)="goTo('/admin/leads')">
+        <span>Leads</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="logout-btn" (click)="logout()">
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="prompt">$</span>
+        <span class="topbar-title">Users</span>
+        <span class="topbar-meta">~/admin · {{ filtered.length }} records</span>
+      </div>
+
+      <div class="topbar-right">
+        <span class="role-badge"><span class="dot"></span> Admin</span>
+        <button class="tb-btn primary" type="button" (click)="loadUsers()">
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-label">Total Users</span>
+          <span class="stat-value">{{ users.length }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Regular Users</span>
+          <span class="stat-value accent">{{ userCount }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Admins</span>
+          <span class="stat-value">{{ adminCount }}</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">GitHub OAuth</span>
+          <span class="stat-value">{{ githubCount }}</span>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        @for (role of roles; track role) {
+          <button
+            class="filter-pill"
+            type="button"
+            [class.active]="selectedRole === role"
+            (click)="filterBy(role)">
+            {{ role }}
+          </button>
+        }
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span class="id">/01</span>
+            <span class="name">· users</span>
+            <span class="count-badge">{{ filtered.length }} rows</span>
+          </div>
+        </div>
+
+        @if (loading) {
+          <div class="state-box">Loading...</div>
+        }
+
+        @if (error) {
+          <div class="state-box error-state">{{ error }}</div>
+        }
+
+        @if (!loading && filtered.length === 0) {
+          <div class="state-box">No users found.</div>
+        }
+
+        @if (!loading && filtered.length > 0) {
+          <div class="table-wrap">
+            <table class="merchants">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Auth</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (user of filtered; track user.id) {
+                  <tr>
+                    <td class="col-id">#{{ user.id }}</td>
+                    <td class="col-customer">{{ user.name }}</td>
+                    <td class="col-email">{{ user.email }}</td>
+                    <td>
+                      <span class="status-pill" [class]="user.role === 'ADMIN' ? 'succeeded' : ''">
+                        {{ user.role }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="status-pill">
+                        {{ user.githubUser ? 'GitHub' : 'Email' }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="status-pill" [class]="user.active ? 'succeeded' : 'failed'">
+                        <span class="dot"></span>
+                        {{ user.active ? 'ACTIVE' : 'INACTIVE' }}
+                      </span>
+                    </td>
+                    <td class="col-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+                    <td>
+                      @if (user.role !== 'ADMIN') {
+                        <button class="danger-btn small" (click)="deleteUser(user)">
+                          Delete
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

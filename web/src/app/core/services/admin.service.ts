@@ -6,7 +6,8 @@ import {
   AdminDashboard,
   AdminLead,
   AdminMerchant,
-  AdminPayment
+  AdminPayment,
+  AdminUser
 } from '../models/admin/admin-dashboard.model';
 
 @Injectable({
@@ -15,7 +16,7 @@ import {
 export class AdminService {
   private readonly apiUrl = '/api/admin';
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   getDashboard(): Observable<AdminDashboard> {
     return this.http.get<AdminDashboard>(`${this.apiUrl}/dashboard`);
@@ -35,5 +36,17 @@ export class AdminService {
 
   getConversions(): Observable<AdminConversion[]> {
     return this.http.get<AdminConversion[]>(`${this.apiUrl}/conversions`);
+  }
+
+  getUsers(): Observable<AdminUser[]> {
+    return this.http.get<AdminUser[]>(`${this.apiUrl}/users`);
+  }
+
+  deleteUser(userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/${userId}`);
+  }
+
+  deleteMerchant(merchantId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/merchants/${merchantId}`);
   }
 }

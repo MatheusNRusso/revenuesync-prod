@@ -109,8 +109,8 @@ export const routes: Routes = [
   },
 
   // ── Public ─────────────────────────────────────────────────────────────────
-  { path: 'pay/:slug',        component: PayComponent            },
-  { path: 'oauth2/callback',  component: OAuth2CallbackComponent },
+  { path: 'pay/:slug', component: PayComponent },
+  { path: 'oauth2/callback', component: OAuth2CallbackComponent },
   {
     path: 'u/:slug',
     loadComponent: () =>
@@ -134,6 +134,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/merchant-detail/merchant-detail').then(m => m.MerchantDetailComponent),
     canActivate: [authGuard]
+  },
+
+  {
+    path: 'admin/users',
+    loadComponent: () =>
+      import('./pages/admin/users/admin-users')
+        .then(m => m.AdminUsers),
+    canActivate: [authGuard, roleGuard('ADMIN')]
   },
   { path: '**', redirectTo: '' }
 ];
