@@ -18,6 +18,10 @@
         <span class="badge">{{ totalMerchants }}</span>
       </a>
 
+      <a class="sidebar-link" [class.active]="isActive('/admin/users')" (click)="goTo('/admin/users')">
+        <span>Users</span>
+      </a>
+
       <a class="sidebar-link" [class.active]="isActive('/admin/payments')" (click)="goTo('/admin/payments')">
         <span>Payments</span>
         <span class="badge">{{ totalPayments }}</span>
@@ -58,7 +62,7 @@
     <main class="main">
 
       @if (error) {
-        <div class="state-box error-state">{{ error }}</div>
+      <div class="state-box error-state">{{ error }}</div>
       }
 
       <div class="kpi-row">
@@ -106,16 +110,17 @@
 
           <div class="chart-body">
             @if (revenueChartLabels.length > 0) {
-              <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none">
-                <line x1="36" y1="18"  x2="584" y2="18"  stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
-                <line x1="36" y1="61"  x2="584" y2="61"  stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
-                <line x1="36" y1="105" x2="584" y2="105" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
-                <line x1="36" y1="148" x2="584" y2="148" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
-                <line x1="36" y1="192" x2="584" y2="192" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1"/>
-                <polyline [attr.points]="getLinePoints(revenueChartData)" fill="none" stroke="#00d4aa" stroke-width="1.5"/>
-              </svg>
+            <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none">
+              <line x1="36" y1="18" x2="584" y2="18" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1" />
+              <line x1="36" y1="61" x2="584" y2="61" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1" />
+              <line x1="36" y1="105" x2="584" y2="105" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1" />
+              <line x1="36" y1="148" x2="584" y2="148" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1" />
+              <line x1="36" y1="192" x2="584" y2="192" stroke="#1e2d3d" stroke-dasharray="2 4" stroke-width="1" />
+              <polyline [attr.points]="getLinePoints(revenueChartData)" fill="none" stroke="#00d4aa"
+                stroke-width="1.5" />
+            </svg>
             } @else {
-              <div class="chart-empty">No data</div>
+            <div class="chart-empty">No data</div>
             }
           </div>
         </div>
@@ -130,17 +135,17 @@
 
           <div class="chart-body">
             @if (paymentsChartLabels.length > 0) {
-              <div class="bar-chart">
-                @for (v of paymentsChartData; track $index; let i = $index) {
-                  <div class="bar-col">
-                    <span class="bar-value">{{ v }}</span>
-                    <div class="bar" [style.height.%]="(v / maxPayments) * 100"></div>
-                    <span class="bar-label">{{ paymentsChartLabels[i] | slice:5 }}</span>
-                  </div>
-                }
+            <div class="bar-chart">
+              @for (v of paymentsChartData; track $index; let i = $index) {
+              <div class="bar-col">
+                <span class="bar-value">{{ v }}</span>
+                <div class="bar" [style.height.%]="(v / maxPayments) * 100"></div>
+                <span class="bar-label">{{ paymentsChartLabels[i] | slice:5 }}</span>
               </div>
+              }
+            </div>
             } @else {
-              <div class="chart-empty">No data</div>
+            <div class="chart-empty">No data</div>
             }
           </div>
         </div>
@@ -158,26 +163,26 @@
 
         <div class="activity-list">
           @for (p of payments.slice(0, 8); track p.id) {
-            <div class="activity-row">
-              <div class="activity-main">
-                <span class="status-pill" [class]="statusClass(p.status)">
-                  <span class="dot"></span>{{ p.status }}
-                </span>
-                <span class="activity-merchant">{{ p.merchantName || 'Merchant' }}</span>
-              </div>
-
-              <span class="activity-email">{{ p.customerEmail || 'No customer email' }}</span>
-
-              <span class="activity-amount">
-                @if (p.currency === 'SOL' || p.currency === 'USDC') {
-                  ◎ {{ p.amount | number:'1.6-6' }} {{ p.currency }}
-                } @else {
-                  R$ {{ p.amount | number:'1.2-2' }}
-                }
+          <div class="activity-row">
+            <div class="activity-main">
+              <span class="status-pill" [class]="statusClass(p.status)">
+                <span class="dot"></span>{{ p.status }}
               </span>
-
-              <span class="activity-time">{{ p.createdAt | date:'dd/MM/yyyy · HH:mm:ss' }}</span>
+              <span class="activity-merchant">{{ p.merchantName || 'Merchant' }}</span>
             </div>
+
+            <span class="activity-email">{{ p.customerEmail || 'No customer email' }}</span>
+
+            <span class="activity-amount">
+              @if (p.currency === 'SOL' || p.currency === 'USDC') {
+              ◎ {{ p.amount | number:'1.6-6' }} {{ p.currency }}
+              } @else {
+              R$ {{ p.amount | number:'1.2-2' }}
+              }
+            </span>
+
+            <span class="activity-time">{{ p.createdAt | date:'dd/MM/yyyy · HH:mm:ss' }}</span>
+          </div>
           }
         </div>
       </div>
@@ -195,44 +200,50 @@
         <div class="table-wrap">
           <table class="payments">
             <thead>
-            <tr>
-              <th (click)="sort('id')" [class.sorted]="sortColumn==='id'">ID <span class="arrow">↕</span></th>
-              <th (click)="sort('externalPaymentId')" [class.sorted]="sortColumn==='externalPaymentId'">External ID <span class="arrow">↕</span></th>
-              <th (click)="sort('customerName')" [class.sorted]="sortColumn==='customerName'">Customer <span class="arrow">↕</span></th>
-              <th (click)="sort('customerEmail')" [class.sorted]="sortColumn==='customerEmail'">Email <span class="arrow">↕</span></th>
-              <th (click)="sort('amount')" [class.sorted]="sortColumn==='amount'" style="text-align:right">Amount <span class="arrow">↕</span></th>
-              <th>Currency</th>
-              <th (click)="sort('status')" [class.sorted]="sortColumn==='status'">Status <span class="arrow">↕</span></th>
-              <th (click)="sort('createdAt')" [class.sorted]="sortColumn==='createdAt'">Date <span class="arrow">↕</span></th>
-            </tr>
+              <tr>
+                <th (click)="sort('id')" [class.sorted]="sortColumn==='id'">ID <span class="arrow">↕</span></th>
+                <th (click)="sort('externalPaymentId')" [class.sorted]="sortColumn==='externalPaymentId'">External ID
+                  <span class="arrow">↕</span></th>
+                <th (click)="sort('customerName')" [class.sorted]="sortColumn==='customerName'">Customer <span
+                    class="arrow">↕</span></th>
+                <th (click)="sort('customerEmail')" [class.sorted]="sortColumn==='customerEmail'">Email <span
+                    class="arrow">↕</span></th>
+                <th (click)="sort('amount')" [class.sorted]="sortColumn==='amount'" style="text-align:right">Amount
+                  <span class="arrow">↕</span></th>
+                <th>Currency</th>
+                <th (click)="sort('status')" [class.sorted]="sortColumn==='status'">Status <span class="arrow">↕</span>
+                </th>
+                <th (click)="sort('createdAt')" [class.sorted]="sortColumn==='createdAt'">Date <span
+                    class="arrow">↕</span></th>
+              </tr>
             </thead>
 
             <tbody>
               @for (p of sortedPayments; track p.id) {
-                <tr>
-                  <td class="col-id">#{{ p.id }}</td>
-                  <td class="col-id">{{ p.externalPaymentId }}</td>
-                  <td class="col-customer">{{ p.merchantName || 'Merchant' }}</td>
-                  <td class="col-email">{{ p.customerEmail }}</td>
+              <tr>
+                <td class="col-id">#{{ p.id }}</td>
+                <td class="col-id">{{ p.externalPaymentId }}</td>
+                <td class="col-customer">{{ p.merchantName || 'Merchant' }}</td>
+                <td class="col-email">{{ p.customerEmail }}</td>
 
-                  <td class="col-amount">
-                    @if (p.currency === 'SOL' || p.currency === 'USDC') {
-                      <span class="currency">◎</span>{{ p.amount | number:'1.6-6' }}
-                    } @else {
-                      <span class="currency">R$</span>{{ p.amount | number:'1.2-2' }}
-                    }
-                  </td>
+                <td class="col-amount">
+                  @if (p.currency === 'SOL' || p.currency === 'USDC') {
+                  <span class="currency">◎</span>{{ p.amount | number:'1.6-6' }}
+                  } @else {
+                  <span class="currency">R$</span>{{ p.amount | number:'1.2-2' }}
+                  }
+                </td>
 
-                  <td class="col-currency">{{ p.currency }}</td>
+                <td class="col-currency">{{ p.currency }}</td>
 
-                  <td>
-                    <span class="status-pill" [class]="statusClass(p.status)">
-                      <span class="dot"></span>{{ p.status }}
-                    </span>
-                  </td>
+                <td>
+                  <span class="status-pill" [class]="statusClass(p.status)">
+                    <span class="dot"></span>{{ p.status }}
+                  </span>
+                </td>
 
-                  <td class="col-date">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                </tr>
+                <td class="col-date">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              </tr>
               }
             </tbody>
           </table>

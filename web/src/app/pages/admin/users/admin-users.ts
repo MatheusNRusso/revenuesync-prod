@@ -14,9 +14,9 @@ import { AdminUser } from '../../../core/models/admin/admin-dashboard.model';
 })
 export class AdminUsers implements OnInit {
   private readonly adminService = inject(AdminService);
-  private readonly authService  = inject(AuthService);
-  private readonly router       = inject(Router);
-  private readonly cdr          = inject(ChangeDetectorRef);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   users: AdminUser[] = [];
   filtered: AdminUser[] = [];
@@ -68,6 +68,15 @@ export class AdminUsers implements OnInit {
         this.error = 'Failed to delete user.';
         this.cdr.detectChanges();
       }
+    });
+  }
+
+  toggleUser(user: AdminUser): void {
+    const action = user.active ? 'deactivate' : 'activate';
+    if (!confirm(`${action} user "${user.name}"?`)) return;
+    this.adminService.toggleUser(user.id, !user.active).subscribe({
+      next: () => this.loadUsers(),
+      error: () => { this.error = `Failed to ${action} user.`; this.cdr.detectChanges(); }
     });
   }
 

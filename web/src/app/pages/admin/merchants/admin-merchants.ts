@@ -99,6 +99,27 @@ export class AdminMerchants implements OnInit {
     });
   }
 
+  toggleMerchant(merchant: AdminMerchant): void {
+    const action = merchant.active ? 'deactivate' : 'activate';
+    if (!confirm(`${action} merchant "${merchant.name}"?`)) return;
+    this.adminService.toggleMerchant(merchant.id, !merchant.active).subscribe({
+      next: () => this.loadMerchants(),
+      error: () => { this.error = `Failed to ${action} merchant.`; this.cdr.detectChanges(); }
+    });
+  }
+
+  deleteMerchant(merchant: AdminMerchant): void {
+    if (!confirm(`Delete merchant "${merchant.name}"? This cannot be undone.`)) return;
+    this.adminService.deleteMerchant(merchant.id).subscribe({
+      next: () => {
+        this.merchants = this.merchants.filter(m => m.id !== merchant.id);
+        this.applyFilter();
+        this.cdr.detectChanges();
+      },
+      error: () => { this.error = 'Failed to delete merchant.'; this.cdr.detectChanges(); }
+    });
+  }
+
   logout(): void {
     this.authService.logout();
   }

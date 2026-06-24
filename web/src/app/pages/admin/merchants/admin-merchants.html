@@ -74,14 +74,9 @@
 
       <div class="filter-bar">
         @for (status of statuses; track status) {
-          <button
-            class="filter-pill"
-            type="button"
-            [class.active]="selectedStatus === status"
-            (click)="filterBy(status)"
-          >
-            {{ status }}
-          </button>
+        <button class="filter-pill" type="button" [class.active]="selectedStatus === status" (click)="filterBy(status)">
+          {{ status }}
+        </button>
         }
       </div>
 
@@ -98,52 +93,66 @@
         </div>
 
         @if (loading) {
-          <div class="state-box">Loading...</div>
+        <div class="state-box">Loading...</div>
         }
 
         @if (error) {
-          <div class="state-box error-state">{{ error }}</div>
+        <div class="state-box error-state">{{ error }}</div>
         }
 
         @if (!loading && filtered.length === 0) {
-          <div class="state-box">No merchants found.</div>
+        <div class="state-box">No merchants found.</div>
         }
 
         @if (!loading && filtered.length > 0) {
-          <div class="table-wrap">
-            <table class="merchants">
-              <thead>
+        <div class="table-wrap">
+          <table class="merchants">
+            <thead>
               <tr>
                 <th (click)="sort('id')" [class.sorted]="sortColumn === 'id'">ID <span class="arrow">↕</span></th>
-                <th (click)="sort('name')" [class.sorted]="sortColumn === 'name'">Merchant <span class="arrow">↕</span></th>
+                <th (click)="sort('name')" [class.sorted]="sortColumn === 'name'">Merchant <span class="arrow">↕</span>
+                </th>
                 <th (click)="sort('slug')" [class.sorted]="sortColumn === 'slug'">Slug <span class="arrow">↕</span></th>
-                <th (click)="sort('email')" [class.sorted]="sortColumn === 'email'">Email <span class="arrow">↕</span></th>
-                <th (click)="sort('walletAddress')" [class.sorted]="sortColumn === 'walletAddress'">Wallet <span class="arrow">↕</span></th>
-                <th (click)="sort('userId')" [class.sorted]="sortColumn === 'userId'">Owner <span class="arrow">↕</span></th>
-                <th (click)="sort('active')" [class.sorted]="sortColumn === 'active'">Status <span class="arrow">↕</span></th>
+                <th (click)="sort('email')" [class.sorted]="sortColumn === 'email'">Email <span class="arrow">↕</span>
+                </th>
+                <th (click)="sort('walletAddress')" [class.sorted]="sortColumn === 'walletAddress'">Wallet <span
+                    class="arrow">↕</span></th>
+                <th (click)="sort('userId')" [class.sorted]="sortColumn === 'userId'">Owner <span class="arrow">↕</span>
+                </th>
+                <th (click)="sort('active')" [class.sorted]="sortColumn === 'active'">Status <span
+                    class="arrow">↕</span></th>
+                <th>Actions</th>
               </tr>
-              </thead>
+            </thead>
 
-              <tbody>
-                @for (merchant of filtered; track merchant.id) {
-                  <tr>
-                    <td class="col-id">#{{ merchant.id }}</td>
-                    <td class="col-customer">{{ merchant.name }}</td>
-                    <td class="col-id">{{ merchant.slug }}</td>
-                    <td class="col-email">{{ merchant.email }}</td>
-                    <td class="col-id">{{ merchant.walletAddress || '—' }}</td>
-                    <td class="col-id">#{{ merchant.userId || '—' }}</td>
-                    <td>
-                      <span class="status-pill" [class]="statusClass(merchant.active)">
-                        <span class="dot"></span>
-                        {{ merchant.active ? 'ACTIVE' : 'INACTIVE' }}
-                      </span>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+            <tbody>
+              @for (merchant of filtered; track merchant.id) {
+              <tr>
+                <td class="col-id">#{{ merchant.id }}</td>
+                <td class="col-customer">{{ merchant.name }}</td>
+                <td class="col-id">{{ merchant.slug }}</td>
+                <td class="col-email">{{ merchant.email }}</td>
+                <td class="col-id">{{ merchant.walletAddress || '—' }}</td>
+                <td class="col-id">#{{ merchant.userId || '—' }}</td>
+                <td>
+                  <span class="status-pill" [class]="statusClass(merchant.active)">
+                    <span class="dot"></span>
+                    {{ merchant.active ? 'ACTIVE' : 'INACTIVE' }}
+                  </span>
+                </td>
+                <td class="col-actions">
+                  <button class="tb-btn small" (click)="toggleMerchant(merchant)">
+                    {{ merchant.active ? 'Deactivate' : 'Activate' }}
+                  </button>
+                  <button class="danger-btn small" (click)="deleteMerchant(merchant)">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
         }
       </div>
     </main>

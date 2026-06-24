@@ -82,13 +82,9 @@
 
       <div class="filter-bar">
         @for (role of roles; track role) {
-          <button
-            class="filter-pill"
-            type="button"
-            [class.active]="selectedRole === role"
-            (click)="filterBy(role)">
-            {{ role }}
-          </button>
+        <button class="filter-pill" type="button" [class.active]="selectedRole === role" (click)="filterBy(role)">
+          {{ role }}
+        </button>
         }
       </div>
 
@@ -103,67 +99,70 @@
         </div>
 
         @if (loading) {
-          <div class="state-box">Loading...</div>
+        <div class="state-box">Loading...</div>
         }
 
         @if (error) {
-          <div class="state-box error-state">{{ error }}</div>
+        <div class="state-box error-state">{{ error }}</div>
         }
 
         @if (!loading && filtered.length === 0) {
-          <div class="state-box">No users found.</div>
+        <div class="state-box">No users found.</div>
         }
 
         @if (!loading && filtered.length > 0) {
-          <div class="table-wrap">
-            <table class="merchants">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Auth</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (user of filtered; track user.id) {
-                  <tr>
-                    <td class="col-id">#{{ user.id }}</td>
-                    <td class="col-customer">{{ user.name }}</td>
-                    <td class="col-email">{{ user.email }}</td>
-                    <td>
-                      <span class="status-pill" [class]="user.role === 'ADMIN' ? 'succeeded' : ''">
-                        {{ user.role }}
-                      </span>
-                    </td>
-                    <td>
-                      <span class="status-pill">
-                        {{ user.githubUser ? 'GitHub' : 'Email' }}
-                      </span>
-                    </td>
-                    <td>
-                      <span class="status-pill" [class]="user.active ? 'succeeded' : 'failed'">
-                        <span class="dot"></span>
-                        {{ user.active ? 'ACTIVE' : 'INACTIVE' }}
-                      </span>
-                    </td>
-                    <td class="col-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
-                    <td>
-                      @if (user.role !== 'ADMIN') {
-                        <button class="danger-btn small" (click)="deleteUser(user)">
-                          Delete
-                        </button>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+        <div class="table-wrap">
+          <table class="merchants">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Auth</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of filtered; track user.id) {
+              <tr>
+                <td class="col-id">#{{ user.id }}</td>
+                <td class="col-customer">{{ user.name }}</td>
+                <td class="col-email">{{ user.email }}</td>
+                <td>
+                  <span class="status-pill" [class]="user.role === 'ADMIN' ? 'succeeded' : ''">
+                    {{ user.role }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-pill">
+                    {{ user.githubUser ? 'GitHub' : 'Email' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-pill" [class]="user.active ? 'succeeded' : 'failed'">
+                    <span class="dot"></span>
+                    {{ user.active ? 'ACTIVE' : 'INACTIVE' }}
+                  </span>
+                </td>
+                <td class="col-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  @if (user.role !== 'ADMIN') {
+                  <button class="tb-btn small" (click)="toggleUser(user)">
+                    {{ user.active ? 'Deactivate' : 'Activate' }}
+                  </button>
+                  <button class="danger-btn small" (click)="deleteUser(user)">
+                    Delete
+                  </button>
+                  }
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
         }
       </div>
     </main>
