@@ -150,7 +150,7 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("Merchant not found: " + merchantId));
 
         paymentRepository.deleteAllByMerchant(merchant);
-        solanaPaymentRepository.deleteAllByMerchant(merchant);
+        solanaPaymentRepository.deleteAllByMerchantId(merchantId);
         merchantRepository.delete(merchant);
     }
 

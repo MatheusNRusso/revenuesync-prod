@@ -44,5 +44,6 @@ public interface SolanaPaymentRepository extends JpaRepository<SolanaPayment, Lo
      */
     List<SolanaPayment> findByCustomerEmailOrderByCreatedAtDesc(String customerEmail);
 
-    void deleteAllByMerchant(Merchant merchant);
+    void deleteAllByMerchantId(Long merchantId);
+
 }
