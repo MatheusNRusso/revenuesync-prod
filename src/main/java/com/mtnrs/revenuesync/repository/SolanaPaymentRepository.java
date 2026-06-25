@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.mtnrs.revenuesync.domain.Merchant;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -41,4 +43,6 @@ public interface SolanaPaymentRepository extends JpaRepository<SolanaPayment, Lo
      * the buyer's consumption history.
      */
     List<SolanaPayment> findByCustomerEmailOrderByCreatedAtDesc(String customerEmail);
+
+    void deleteAllByMerchant(Merchant merchant);
 }

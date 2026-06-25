@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mtnrs.revenuesync.dto.admin.AdminUserResponse;
+import com.mtnrs.revenuesync.repository.SolanaPaymentRepository;
+
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,6 +33,7 @@ public class AdminService {
     private final LeadRepository leadRepository;
     private final PaymentRepository paymentRepository;
     private final ConversionRepository conversionRepository;
+    private final SolanaPaymentRepository solanaPaymentRepository;
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
@@ -145,6 +148,9 @@ public class AdminService {
     public void deleteMerchant(Long merchantId) {
         var merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Merchant not found: " + merchantId));
+
+        paymentRepository.deleteAllByMerchant(merchant);
+        solanaPaymentRepository.deleteAllByMerchant(merchant);
         merchantRepository.delete(merchant);
     }
 

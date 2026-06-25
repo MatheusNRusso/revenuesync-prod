@@ -29,4 +29,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Page<Payment> findByMerchant(Merchant merchant, Pageable pageable);
 
     Page<Payment> findByMerchantIn(List<Merchant> merchants, Pageable pageable);
+
+    void deleteAllByMerchant(Merchant merchant);
 }
