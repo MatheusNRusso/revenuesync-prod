@@ -13,13 +13,13 @@
         <span>Dashboard</span>
       </a>
 
+       <a class="sidebar-link" [class.active]="isActive('/admin/users')" (click)="goTo('/admin/users')">
+        <span>Users</span>
+      </a>
+
       <a class="sidebar-link" [class.active]="isActive('/admin/merchants')" (click)="goTo('/admin/merchants')">
         <span>Merchants</span>
         <span class="badge">{{ totalMerchants }}</span>
-      </a>
-
-      <a class="sidebar-link" [class.active]="isActive('/admin/users')" (click)="goTo('/admin/users')">
-        <span>Users</span>
       </a>
 
       <a class="sidebar-link" [class.active]="isActive('/admin/payments')" (click)="goTo('/admin/payments')">
