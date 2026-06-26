@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.mtnrs.revenuesync.dto.admin.AdminUserResponse;
 import com.mtnrs.revenuesync.repository.SolanaPaymentRepository;
-
+import com.mtnrs.revenuesync.repository.UserPublicProfileRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,6 +34,7 @@ public class AdminService {
     private final PaymentRepository paymentRepository;
     private final ConversionRepository conversionRepository;
     private final SolanaPaymentRepository solanaPaymentRepository;
+    private final UserPublicProfileRepository userPublicProfileRepository;
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
@@ -141,6 +142,9 @@ public class AdminService {
     public void deleteUser(Long userId) {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        leadRepository.deleteAllByUserId(userId);
+        userPublicProfileRepository.deleteByUserId(userId);
         userRepository.delete(user);
     }
 

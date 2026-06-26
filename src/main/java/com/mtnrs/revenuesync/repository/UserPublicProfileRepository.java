@@ -36,4 +36,6 @@ public interface UserPublicProfileRepository extends JpaRepository<UserPublicPro
     List<UserPublicProfile> searchPublic(@Param("q") String query);
 
     Optional<UserPublicProfile> findByGithubUsername(String githubUsername);
+
+    void deleteByUserId(Long userId);
 }

@@ -7,4 +7,5 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
     java.util.Optional<Lead> findByUserId(Long userId);
     java.util.Optional<Lead> findByEmail(String email);
     java.util.Optional<Lead> findByWalletAddress(String walletAddress);
+    void deleteAllByUserId(Long userId);
 }
