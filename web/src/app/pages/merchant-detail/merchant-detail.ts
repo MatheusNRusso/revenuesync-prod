@@ -17,13 +17,13 @@ import { MerchantDetail, ConversationResponse } from '../../core/models/merchant
   styleUrls: ['./merchant-detail.scss']
 })
 export class MerchantDetailComponent implements OnInit {
-
   loading = true;
   error: string | null = null;
   merchant: MerchantDetail | null = null;
   conversation: ConversationResponse | null = null;
   currentUserId: number | null = null;
   chatOpen = false;
+  isOwnMerchant = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -35,8 +35,14 @@ export class MerchantDetailComponent implements OnInit {
     private readonly location: Location
   ) { }
 
-
   toggleChat(): void {
+    // Block merchant from chatting with themselves
+    if (this.isOwnMerchant) return;
+
+    if (!this.chatOpen && !this.conversation) {
+      // Create conversation only on first open
+      this.startChat(this.merchant!.id);
+    }
     this.chatOpen = !this.chatOpen;
   }
 
@@ -46,7 +52,6 @@ export class MerchantDetailComponent implements OnInit {
       this.router.navigate(['/discover']);
       return;
     }
-
     this.currentUserId = this.authService.getCurrentUserId();
     this.loadMerchantDetail(Number(merchantId));
   }
@@ -56,10 +61,12 @@ export class MerchantDetailComponent implements OnInit {
       next: (merchant) => {
         this.merchant = merchant;
         this.loading = false;
+
+        // Check if current user owns this merchant
+        this.isOwnMerchant = this.currentUserId !== null &&
+                             merchant.userId === this.currentUserId;
+
         this.cdr.detectChanges();
-        if (this.authService.isAuthenticated()) {
-          this.startChat(merchantId);
-        }
       },
       error: () => {
         this.error = 'Merchant not found.';
