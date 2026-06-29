@@ -22,6 +22,7 @@ export interface ConversationResponse {
   buyerName: string;
   status: string;
   unreadCount: number;
+  messageCount: number;
   createdAt: string;
   updatedAt: string;
 }

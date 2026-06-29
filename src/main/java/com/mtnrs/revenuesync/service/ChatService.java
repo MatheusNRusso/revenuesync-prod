@@ -127,6 +127,8 @@ public class ChatService {
     private ConversationResponse toConversationResponse(Conversation c, Long userId) {
         long unread = chatMessageRepository
                 .countByConversationIdAndReadFalseAndSenderIdNot(c.getId(), userId);
+        
+        long messageCount = chatMessageRepository.countByConversationId(c.getId());
 
         return new ConversationResponse(
                 c.getId(),
@@ -137,6 +139,7 @@ public class ChatService {
                 c.getBuyer().getName(),
                 c.getStatus(),
                 unread,
+                messageCount,
                 c.getCreatedAt(),
                 c.getUpdatedAt()
         );

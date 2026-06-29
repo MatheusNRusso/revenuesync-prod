@@ -381,7 +381,7 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     this.conversationsLoading = true;
     this.chatService.getMyConversations().subscribe({
       next: (convs) => {
-        this.conversations = convs;
+        this.conversations = convs.filter(c => c.messageCount > 0);
         this.conversationsLoading = false;
         this.cdr.detectChanges();
       },

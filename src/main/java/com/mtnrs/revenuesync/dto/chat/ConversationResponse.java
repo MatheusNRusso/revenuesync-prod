@@ -11,6 +11,7 @@ public record ConversationResponse(
         String buyerName,
         String status,
         long unreadCount,
+        long messageCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}
