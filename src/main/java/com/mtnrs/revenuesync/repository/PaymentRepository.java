@@ -31,4 +31,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Page<Payment> findByMerchantIn(List<Merchant> merchants, Pageable pageable);
 
     void deleteAllByMerchant(Merchant merchant);
+
+    @Query("SELECT p FROM Payment p WHERE p.merchant IN :merchants AND p.status = com.mtnrs.revenuesync.domain.enums.PaymentStatus.SUCCEEDED AND p.notifiedAt IS NULL")
+    List<Payment> findUnnotifiedSucceededByMerchants(@Param("merchants") List<Merchant> merchants);
 }

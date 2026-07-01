@@ -176,4 +176,15 @@ public class PaymentService {
                     );
                 });
     }
+
+    @Transactional
+    public List<Payment> acknowledgeNotifications(List<Merchant> merchants) {
+        if (merchants == null || merchants.isEmpty()) {
+            return List.of();
+        }
+        List<Payment> unnotified = paymentRepository.findUnnotifiedSucceededByMerchants(merchants);
+        unnotified.forEach(Payment::markAsNotified);
+        log.info("Acknowledged {} payment notifications", unnotified.size());
+        return unnotified;
+    }
 }

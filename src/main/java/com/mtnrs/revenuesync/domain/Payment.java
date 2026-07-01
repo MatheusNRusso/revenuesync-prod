@@ -16,9 +16,9 @@ import java.time.OffsetDateTime;
 @Table(
         name = "payments",
         indexes = {
-                @Index(name = "idx_payments_external_id", columnList = "external_id", unique = true),
-                @Index(name = "idx_payments_created_at", columnList = "created_at"),
-                @Index(name = "idx_payments_event_id", columnList = "event_id")
+            @Index(name = "idx_payments_external_id", columnList = "external_id", unique = true),
+            @Index(name = "idx_payments_created_at", columnList = "created_at"),
+            @Index(name = "idx_payments_event_id", columnList = "event_id")
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -59,13 +59,16 @@ public class Payment {
     @Column(name = "event_id", length = 120)
     private String eventId;
 
+    @Column(name = "notified_at")
+    private OffsetDateTime notifiedAt;
+
     @JsonIgnore
-    @JoinColumn(name="merchant_id", nullable = false)
+    @JoinColumn(name = "merchant_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Merchant merchant;
 
     @JsonIgnore
-    @JoinColumn(name="lead_id")
+    @JoinColumn(name = "lead_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Lead lead;
 
@@ -82,14 +85,18 @@ public class Payment {
             String rawPayload,
             String eventId
     ) {
-        if (merchant == null)
+        if (merchant == null) {
             throw new IllegalArgumentException("merchant is required");
-        if (externalId == null || externalId.isBlank())
+        }
+        if (externalId == null || externalId.isBlank()) {
             throw new IllegalArgumentException("externalId is required");
-        if (amount == null || amount.signum() <= 0)
+        }
+        if (amount == null || amount.signum() <= 0) {
             throw new IllegalArgumentException("amount must be > 0");
-        if (currency == null || currency.isBlank())
+        }
+        if (currency == null || currency.isBlank()) {
             throw new IllegalArgumentException("currency is required");
+        }
 
         return Payment.builder()
                 .merchant(merchant)
@@ -107,12 +114,18 @@ public class Payment {
 
     @PrePersist
     void prePersist() {
-        if (createdAt == null) createdAt = OffsetDateTime.now();
-        if (status == null) status = PaymentStatus.UNKNOWN;
+        if (createdAt == null) {
+            createdAt = OffsetDateTime.now();
+        }
+        if (status == null) {
+            status = PaymentStatus.UNKNOWN;
+        }
     }
 
     public void transitionTo(PaymentStatus newStatus) {
-        if (newStatus == null) throw new IllegalArgumentException("newStatus is required");
+        if (newStatus == null) {
+            throw new IllegalArgumentException("newStatus is required");
+        }
 
         if (this.status == PaymentStatus.SUCCEEDED && newStatus != PaymentStatus.SUCCEEDED) {
             throw new IllegalStateException("Cannot downgrade a SUCCEEDED payment");
@@ -121,8 +134,14 @@ public class Payment {
         this.status = newStatus;
     }
 
+    public void markAsNotified() {
+        this.notifiedAt = OffsetDateTime.now();
+    }
+
     private static String normalizeEmail(String email) {
-        if (email == null || email.isBlank()) return null;
+        if (email == null || email.isBlank()) {
+            return null;
+        }
         return email.trim().toLowerCase();
     }
 }

@@ -13,6 +13,7 @@ import com.mtnrs.revenuesync.repository.PaymentRepository;
 import com.mtnrs.revenuesync.repository.SolanaPaymentRepository;
 import com.mtnrs.revenuesync.repository.UserRepository;
 import com.mtnrs.revenuesync.service.MerchantProfileService;
+import com.mtnrs.revenuesync.service.PaymentService;
 import com.mtnrs.revenuesync.service.PublicProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,6 @@ import com.mtnrs.revenuesync.dto.auth.ChangePasswordRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.mtnrs.revenuesync.service.JwtService;
 
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +38,7 @@ public class MeController {
 
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
+    private final PaymentService paymentService;
     private final MerchantRepository merchantRepository;
     private final MerchantProfileService merchantProfileService;
     private final SolanaPaymentRepository solanaPaymentRepository;
@@ -220,6 +221,20 @@ public class MeController {
         return ResponseEntity.ok(
                 paymentRepository.findByMerchant(merchant, pageable)
                         .map(paymentMapper::toDto)
+        );
+    }
+
+    @PostMapping("/payments/notifications/acknowledge")
+    public ResponseEntity<List<PaymentResponseDto>> acknowledgeNotifications(
+            @AuthenticationPrincipal User user
+    ) {
+        var merchants = merchantRepository.findAllByUserId(user.getId());
+        if (merchants.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        var acknowledged = paymentService.acknowledgeNotifications(merchants);
+        return ResponseEntity.ok(
+                acknowledged.stream().map(paymentMapper::toDto).toList()
         );
     }
 
