@@ -17,7 +17,6 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -123,14 +122,19 @@ public class ChatService {
             java.math.BigDecimal amountSol,
             String txSignature) {
 
+        log.info("[PAYMENT_CONFIRMED] Attempting — merchantId={} email={} amount={}",
+                merchantId, customerEmail, amountSol);
+
         if (customerEmail == null || customerEmail.isBlank()) {
-            log.debug("No customer email for payment confirmation message — skipping");
+            log.warn("[PAYMENT_CONFIRMED] Skipped — customerEmail is null/blank");
             return;
         }
 
         conversationRepository
                 .findByMerchantIdAndBuyerEmail(merchantId, customerEmail)
                 .ifPresentOrElse(conversation -> {
+                    log.info("[PAYMENT_CONFIRMED] Conversation FOUND id={}", conversation.getId());
+
                     Merchant merchant = merchantRepository.findById(merchantId)
                             .orElseThrow(() -> new IllegalStateException("Merchant not found: " + merchantId));
 
@@ -141,8 +145,8 @@ public class ChatService {
                             txSignature
                     );
                     chatMessageRepository.save(message);
-                    log.info("Payment confirmed message sent to conversation id={}", conversation.getId());
-                }, () -> log.debug("No conversation found for merchantId={} email={} — skipping", merchantId, customerEmail));
+                    log.info("[PAYMENT_CONFIRMED] Message SAVED to conversation id={}", conversation.getId());
+                }, () -> log.warn("[PAYMENT_CONFIRMED] NO conversation for merchantId={} email={}", merchantId, customerEmail));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
