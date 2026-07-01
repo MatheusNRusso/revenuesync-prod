@@ -86,7 +86,7 @@ export interface UpdateMerchantWalletRequest {
 
 @Injectable({ providedIn: 'root' })
 export class MeService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getProfile(): Observable<MeProfileResponse> {
     return this.http.get<MeProfileResponse>('/api/me/dashboard');
@@ -109,6 +109,13 @@ export class MeService {
   ): Observable<PageResponse<PaymentResponse>> {
     return this.http.get<PageResponse<PaymentResponse>>(
       `/api/me/merchants/${merchantId}/payments?page=${page}&size=${size}`
+    );
+  }
+
+  acknowledgeNotifications(): Observable<PaymentResponse[]> {
+    return this.http.post<PaymentResponse[]>(
+      '/api/me/payments/notifications/acknowledge',
+      {}
     );
   }
 

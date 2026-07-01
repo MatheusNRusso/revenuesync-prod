@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -16,7 +16,7 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './merchant-payments.html',
   styleUrls: ['./merchant-payments.scss']
 })
-export class MerchantPayments implements OnInit {
+export class MerchantPayments implements OnInit, OnDestroy {
   private readonly meService = inject(MeService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -39,6 +39,8 @@ export class MerchantPayments implements OnInit {
   sortColumn: keyof PaymentResponse = 'createdAt';
   sortDir: 'asc' | 'desc' = 'desc';
 
+  private intervalId: ReturnType<typeof setInterval> | null = null;
+
   page = 0;
   size = 20;
   totalElements = 0;
@@ -47,6 +49,53 @@ export class MerchantPayments implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboard();
+    this.startPolling();
+  }
+
+  ngOnDestroy(): void {
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId);
+    }
+  }
+
+  private startPolling(): void {
+    this.intervalId = setInterval(() => {
+      this.meService.acknowledgeNotifications().subscribe({
+        next: (newPayments) => {
+          if (newPayments.length > 0) {
+            this.showToast(newPayments.length);
+            this.loadPayments();
+          }
+        },
+        error: () => { } // silent — polling errors should not disrupt the UI
+      });
+    }, 15000);
+  }
+
+  private showToast(count: number): void {
+    const msg = count === 1
+      ? '💰 New payment received!'
+      : `💰 ${count} new payments received!`;
+
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #00d4aa;
+    color: #0a0a0a;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,212,170,0.3);
+    animation: slideIn 0.3s ease;
+  `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
   }
 
   loadDashboard(): void {
