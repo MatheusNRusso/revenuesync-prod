@@ -18,31 +18,32 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Scheduled job responsible for:
- * 1. Scanning PENDING Solana payments and verifying them on-chain
- * 2. On confirmation: triggering the existing pipeline (Payment → Conversion → Lead)
- * 3. Expiring timed-out payments
+ * Scheduled job responsible for: 1. Scanning PENDING Solana payments and
+ * verifying them on-chain 2. On confirmation: triggering the existing pipeline
+ * (Payment → Conversion → Lead) 3. Expiring timed-out payments
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class SolanaVerificationJob {
 
-    private final SolanaPayService        solanaPayService;
+    private final SolanaPayService solanaPayService;
     private final SolanaPaymentRepository solanaPaymentRepository;
-    private final PaymentService          paymentService;
-    private final ConversionService       conversionService;
-    private final LeadService             leadService;
-    private final MerchantRepository      merchantRepository;
+    private final PaymentService paymentService;
+    private final ConversionService conversionService;
+    private final LeadService leadService;
+    private final MerchantRepository merchantRepository;
     private final LeadRepository leadRepository;
+    private final ChatService chatService;
 
     // ── Verify pending payments ───────────────────────────────────────────────
-
     @Scheduled(fixedDelayString = "${solana.verification-interval-ms:5000}")
     public void verifyPendingPayments() {
         List<SolanaPayment> pending = solanaPayService.findPendingActive();
 
-        if (pending.isEmpty()) return;
+        if (pending.isEmpty()) {
+            return;
+        }
 
         log.debug("Solana verification job: {} pending payment(s) to check", pending.size());
 
@@ -71,7 +72,7 @@ public class SolanaVerificationJob {
         // 1. Upsert into the existing PaymentService (idempotent)
         Merchant merchant = merchantRepository.findById(solanaPayment.getMerchantId())
                 .orElseThrow(() -> new IllegalStateException(
-                        "Merchant not found: " + solanaPayment.getMerchantId()));
+                "Merchant not found: " + solanaPayment.getMerchantId()));
 
         var lead = solanaPayment.getLeadId() != null
                 ? leadRepository.findById(solanaPayment.getLeadId()).orElse(null)
@@ -80,7 +81,7 @@ public class SolanaVerificationJob {
         var payment = paymentService.upsertFromSolana(
                 merchant,
                 lead,
-                "solana:" + txSignature.get(),  // unique externalId
+                "solana:" + txSignature.get(), // unique externalId
                 solanaPayment.getAmount(),
                 solanaPayment.getCurrency(),
                 PaymentStatus.SUCCEEDED,
@@ -95,7 +96,7 @@ public class SolanaVerificationJob {
         solanaPaymentRepository.save(solanaPayment);
 
         // 3. Dispatch conversions to Meta CAPI and Google Ads (existing pipeline)
-        String metaJson   = buildMetaJson(solanaPayment, txSignature.get());
+        String metaJson = buildMetaJson(solanaPayment, txSignature.get());
         String googleJson = buildGoogleJson(solanaPayment, txSignature.get());
 
         conversionService.sendToMeta(payment.getId(), solanaPayment.getAmount(), solanaPayment.getCurrency(), metaJson);
@@ -109,21 +110,30 @@ public class SolanaVerificationJob {
             leadService.createLead(
                     solanaPayment.getCustomerEmail(),
                     null,
-                    LeadSource.SOLANA_PAY,  // reuses existing enum — add SOLANA_PAY later
+                    LeadSource.SOLANA_PAY, // reuses existing enum — add SOLANA_PAY later
                     leadJson
             );
             log.info("Lead created for Solana payment email={}", solanaPayment.getCustomerEmail());
         }
+
+        // 5. Notify chat conversation if buyer had an active conversation
+        chatService.sendPaymentConfirmedMessage(
+                solanaPayment.getMerchantId(),
+                solanaPayment.getCustomerEmail(),
+                solanaPayment.getAmount(),
+                txSignature.get()
+        );
     }
 
     // ── Expire timed-out payments ─────────────────────────────────────────────
-
     @Scheduled(fixedDelay = 60_000) // every 1 minute
     @Transactional
     public void expireOldPayments() {
         List<SolanaPayment> expired = solanaPayService.findExpired();
 
-        if (expired.isEmpty()) return;
+        if (expired.isEmpty()) {
+            return;
+        }
 
         log.info("Expiring {} Solana payment(s)", expired.size());
 
@@ -134,11 +144,10 @@ public class SolanaVerificationJob {
     }
 
     // ── JSON payload builders ─────────────────────────────────────────────────
-
     private String buildRawPayload(SolanaPayment p, String txSignature) {
         return String.format(
-                "{\"source\":\"SOLANA_PAY\",\"reference\":\"%s\",\"txSignature\":\"%s\"," +
-                        "\"amount\":\"%s\",\"currency\":\"%s\",\"recipientWallet\":\"%s\"}",
+                "{\"source\":\"SOLANA_PAY\",\"reference\":\"%s\",\"txSignature\":\"%s\","
+                + "\"amount\":\"%s\",\"currency\":\"%s\",\"recipientWallet\":\"%s\"}",
                 p.getReference(), txSignature,
                 p.getAmount().toPlainString(), p.getCurrency(), p.getRecipientWallet()
         );
@@ -146,16 +155,16 @@ public class SolanaVerificationJob {
 
     private String buildMetaJson(SolanaPayment p, String txSignature) {
         return String.format(
-                "{\"event\":\"Purchase\",\"value\":%s,\"currency\":\"%s\"," +
-                        "\"source\":\"SOLANA_PAY\",\"txSignature\":\"%s\"}",
+                "{\"event\":\"Purchase\",\"value\":%s,\"currency\":\"%s\","
+                + "\"source\":\"SOLANA_PAY\",\"txSignature\":\"%s\"}",
                 p.getAmount().toPlainString(), p.getCurrency(), txSignature
         );
     }
 
     private String buildGoogleJson(SolanaPayment p, String txSignature) {
         return String.format(
-                "{\"conversion\":\"Purchase\",\"value\":%s,\"currency\":\"%s\"," +
-                        "\"source\":\"SOLANA_PAY\",\"txSignature\":\"%s\"}",
+                "{\"conversion\":\"Purchase\",\"value\":%s,\"currency\":\"%s\","
+                + "\"source\":\"SOLANA_PAY\",\"txSignature\":\"%s\"}",
                 p.getAmount().toPlainString(), p.getCurrency(), txSignature
         );
     }
@@ -178,7 +187,7 @@ public class SolanaVerificationJob {
 
         Merchant merchant = merchantRepository.findById(solanaPayment.getMerchantId())
                 .orElseThrow(() -> new IllegalStateException(
-                        "Merchant not found: " + solanaPayment.getMerchantId()));
+                "Merchant not found: " + solanaPayment.getMerchantId()));
 
         var lead = solanaPayment.getLeadId() != null
                 ? leadRepository.findById(solanaPayment.getLeadId()).orElse(null)
@@ -203,6 +212,13 @@ public class SolanaVerificationJob {
         String metaJson = buildMetaJson(solanaPayment, txSignature);
         String googleJson = buildGoogleJson(solanaPayment, txSignature);
 
+        chatService.sendPaymentConfirmedMessage(
+                solanaPayment.getMerchantId(),
+                solanaPayment.getCustomerEmail(),
+                solanaPayment.getAmount(),
+                txSignature
+        );
+
         conversionService.sendToMeta(
                 payment.getId(),
                 solanaPayment.getAmount(),
@@ -225,5 +241,6 @@ public class SolanaVerificationJob {
                 "paymentId", payment.getId(),
                 "status", solanaPayment.getStatus().name()
         );
+
     }
 }

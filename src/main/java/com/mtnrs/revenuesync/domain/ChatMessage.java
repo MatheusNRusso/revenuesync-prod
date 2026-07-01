@@ -95,6 +95,25 @@ public class ChatMessage {
                 .build();
     }
 
+    public static ChatMessage paymentConfirmed(
+            Conversation conversation,
+            User merchant,
+            java.math.BigDecimal amountSol,
+            String txSignature) {
+        if (conversation == null) {
+            throw new IllegalArgumentException("Conversation is required");
+        }
+        return ChatMessage.builder()
+                .conversation(conversation)
+                .sender(merchant)
+                .content("✅ Payment confirmed: ◎ " + amountSol + " SOL — tx: " + txSignature.substring(0, 8) + "...")
+                .messageType(MessageType.PAYMENT_CONFIRMED)
+                .paymentAmountSol(amountSol)
+                .paymentStatus("SUCCEEDED")
+                .read(false)
+                .build();
+    }
+
     // ── Mutators ──────────────────────────────────────────────────────────────
     public void markAsRead() {
         this.read = true;

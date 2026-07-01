@@ -15,8 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatService {
 
     private final ConversationRepository conversationRepository;
@@ -112,6 +116,35 @@ public class ChatService {
         return toMessageResponse(message);
     }
 
+    @Transactional
+    public void sendPaymentConfirmedMessage(
+            Long merchantId,
+            String customerEmail,
+            java.math.BigDecimal amountSol,
+            String txSignature) {
+
+        if (customerEmail == null || customerEmail.isBlank()) {
+            log.debug("No customer email for payment confirmation message — skipping");
+            return;
+        }
+
+        conversationRepository
+                .findByMerchantIdAndBuyerEmail(merchantId, customerEmail)
+                .ifPresentOrElse(conversation -> {
+                    Merchant merchant = merchantRepository.findById(merchantId)
+                            .orElseThrow(() -> new IllegalStateException("Merchant not found: " + merchantId));
+
+                    ChatMessage message = ChatMessage.paymentConfirmed(
+                            conversation,
+                            merchant.getUser(),
+                            amountSol,
+                            txSignature
+                    );
+                    chatMessageRepository.save(message);
+                    log.info("Payment confirmed message sent to conversation id={}", conversation.getId());
+                }, () -> log.debug("No conversation found for merchantId={} email={} — skipping", merchantId, customerEmail));
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
     private Conversation findConversation(Long id) {
         return conversationRepository.findById(id)
@@ -127,7 +160,7 @@ public class ChatService {
     private ConversationResponse toConversationResponse(Conversation c, Long userId) {
         long unread = chatMessageRepository
                 .countByConversationIdAndReadFalseAndSenderIdNot(c.getId(), userId);
-        
+
         long messageCount = chatMessageRepository.countByConversationId(c.getId());
 
         return new ConversationResponse(
