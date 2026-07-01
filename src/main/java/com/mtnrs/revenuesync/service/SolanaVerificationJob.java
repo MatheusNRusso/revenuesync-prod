@@ -20,7 +20,7 @@ import java.util.Optional;
 /**
  * Scheduled job responsible for: 1. Scanning PENDING Solana payments and
  * verifying them on-chain 2. On confirmation: triggering the existing pipeline
- * (Payment → Conversion → Lead) 3. Expiring timed-out payments
+ * (Payment → Chat → Conversion → Lead) 3. Expiring timed-out payments
  */
 @Service
 @RequiredArgsConstructor
@@ -95,34 +95,49 @@ public class SolanaVerificationJob {
         solanaPayment.confirm(txSignature.get(), payment.getId());
         solanaPaymentRepository.save(solanaPayment);
 
-        // 3. Dispatch conversions to Meta CAPI and Google Ads (existing pipeline)
-        String metaJson = buildMetaJson(solanaPayment, txSignature.get());
-        String googleJson = buildGoogleJson(solanaPayment, txSignature.get());
-
-        conversionService.sendToMeta(payment.getId(), solanaPayment.getAmount(), solanaPayment.getCurrency(), metaJson);
-        conversionService.sendToGoogle(payment.getId(), solanaPayment.getAmount(), solanaPayment.getCurrency(), googleJson);
-
-        log.info("Conversions dispatched for Solana payment id={}", payment.getId());
-
-        // 4. Create lead in Pipedrive if email is present (existing pipeline)
-        if (solanaPayment.getCustomerEmail() != null && !solanaPayment.getCustomerEmail().isBlank()) {
-            String leadJson = buildLeadJson(solanaPayment);
-            leadService.createLead(
+        // 3. Notify chat conversation (highest-priority side-effect — user-facing)
+        try {
+            chatService.sendPaymentConfirmedMessage(
+                    solanaPayment.getMerchantId(),
                     solanaPayment.getCustomerEmail(),
-                    null,
-                    LeadSource.SOLANA_PAY, // reuses existing enum — add SOLANA_PAY later
-                    leadJson
+                    solanaPayment.getAmount(),
+                    txSignature.get()
             );
-            log.info("Lead created for Solana payment email={}", solanaPayment.getCustomerEmail());
+        } catch (Exception e) {
+            log.error("Failed to send chat notification for payment id={}: {}",
+                    payment.getId(), e.getMessage());
         }
 
-        // 5. Notify chat conversation if buyer had an active conversation
-        chatService.sendPaymentConfirmedMessage(
-                solanaPayment.getMerchantId(),
-                solanaPayment.getCustomerEmail(),
-                solanaPayment.getAmount(),
-                txSignature.get()
-        );
+        // 4. Dispatch conversions to Meta CAPI and Google Ads (external tracking — non-critical)
+        try {
+            String metaJson = buildMetaJson(solanaPayment, txSignature.get());
+            String googleJson = buildGoogleJson(solanaPayment, txSignature.get());
+
+            conversionService.sendToMeta(payment.getId(), solanaPayment.getAmount(), solanaPayment.getCurrency(), metaJson);
+            conversionService.sendToGoogle(payment.getId(), solanaPayment.getAmount(), solanaPayment.getCurrency(), googleJson);
+
+            log.info("Conversions dispatched for Solana payment id={}", payment.getId());
+        } catch (Exception e) {
+            log.error("Failed to dispatch conversions for payment id={}: {}",
+                    payment.getId(), e.getMessage());
+        }
+
+        // 5. Create lead in Pipedrive if email is present (external CRM — non-critical)
+        try {
+            if (solanaPayment.getCustomerEmail() != null && !solanaPayment.getCustomerEmail().isBlank()) {
+                String leadJson = buildLeadJson(solanaPayment);
+                leadService.createLead(
+                        solanaPayment.getCustomerEmail(),
+                        null,
+                        LeadSource.SOLANA_PAY, // reuses existing enum — add SOLANA_PAY later
+                        leadJson
+                );
+                log.info("Lead created for Solana payment email={}", solanaPayment.getCustomerEmail());
+            }
+        } catch (Exception e) {
+            log.error("Failed to create lead for payment id={}: {}",
+                    payment.getId(), e.getMessage());
+        }
     }
 
     // ── Expire timed-out payments ─────────────────────────────────────────────
@@ -209,29 +224,41 @@ public class SolanaVerificationJob {
         solanaPayment.confirm(txSignature, payment.getId());
         solanaPaymentRepository.save(solanaPayment);
 
-        String metaJson = buildMetaJson(solanaPayment, txSignature);
-        String googleJson = buildGoogleJson(solanaPayment, txSignature);
+        // Notify chat conversation (highest-priority side-effect — user-facing)
+        try {
+            chatService.sendPaymentConfirmedMessage(
+                    solanaPayment.getMerchantId(),
+                    solanaPayment.getCustomerEmail(),
+                    solanaPayment.getAmount(),
+                    txSignature
+            );
+        } catch (Exception e) {
+            log.error("Failed to send chat notification for payment id={}: {}",
+                    payment.getId(), e.getMessage());
+        }
 
-        chatService.sendPaymentConfirmedMessage(
-                solanaPayment.getMerchantId(),
-                solanaPayment.getCustomerEmail(),
-                solanaPayment.getAmount(),
-                txSignature
-        );
+        // Dispatch conversions (external tracking — non-critical)
+        try {
+            String metaJson = buildMetaJson(solanaPayment, txSignature);
+            String googleJson = buildGoogleJson(solanaPayment, txSignature);
 
-        conversionService.sendToMeta(
-                payment.getId(),
-                solanaPayment.getAmount(),
-                solanaPayment.getCurrency(),
-                metaJson
-        );
+            conversionService.sendToMeta(
+                    payment.getId(),
+                    solanaPayment.getAmount(),
+                    solanaPayment.getCurrency(),
+                    metaJson
+            );
 
-        conversionService.sendToGoogle(
-                payment.getId(),
-                solanaPayment.getAmount(),
-                solanaPayment.getCurrency(),
-                googleJson
-        );
+            conversionService.sendToGoogle(
+                    payment.getId(),
+                    solanaPayment.getAmount(),
+                    solanaPayment.getCurrency(),
+                    googleJson
+            );
+        } catch (Exception e) {
+            log.error("Failed to dispatch conversions for payment id={}: {}",
+                    payment.getId(), e.getMessage());
+        }
 
         return Map.of(
                 "message", "Solana payment manually confirmed",
@@ -241,6 +268,5 @@ public class SolanaVerificationJob {
                 "paymentId", payment.getId(),
                 "status", solanaPayment.getStatus().name()
         );
-
     }
 }
