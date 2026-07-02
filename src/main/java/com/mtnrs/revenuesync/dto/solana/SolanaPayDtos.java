@@ -23,11 +23,11 @@ public class SolanaPayDtos {
             String label,
             String message,
 
-            /** Minutes until the payment expires. Defaults to 15 */
+            /** Minutes until the payment expires. Defaults to 5 */
             Integer expirationMinutes
     ) {
         public int resolvedExpiration() {
-            return (expirationMinutes != null && expirationMinutes > 0) ? expirationMinutes : 15;
+            return (expirationMinutes != null && expirationMinutes > 0) ? expirationMinutes : 5;
         }
     }
 

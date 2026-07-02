@@ -10,12 +10,11 @@ import com.mtnrs.revenuesync.repository.ChatMessageRepository;
 import com.mtnrs.revenuesync.repository.ConversationRepository;
 import com.mtnrs.revenuesync.repository.MerchantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -102,7 +101,6 @@ public class ChatService {
 
         Conversation conversation = findConversation(conversationId);
 
-        // Only merchant can send payment request
         if (!conversation.getMerchant().getUser().getId().equals(merchant.getId())) {
             throw new SecurityException("Only the merchant can send a payment request");
         }
@@ -122,19 +120,14 @@ public class ChatService {
             java.math.BigDecimal amountSol,
             String txSignature) {
 
-        log.info("[PAYMENT_CONFIRMED] Attempting — merchantId={} email={} amount={}",
-                merchantId, customerEmail, amountSol);
-
         if (customerEmail == null || customerEmail.isBlank()) {
-            log.warn("[PAYMENT_CONFIRMED] Skipped — customerEmail is null/blank");
+            log.debug("Payment confirmed message skipped — no customer email for merchantId={}", merchantId);
             return;
         }
 
         conversationRepository
                 .findByMerchantIdAndBuyerEmail(merchantId, customerEmail)
                 .ifPresentOrElse(conversation -> {
-                    log.info("[PAYMENT_CONFIRMED] Conversation FOUND id={}", conversation.getId());
-
                     Merchant merchant = merchantRepository.findById(merchantId)
                             .orElseThrow(() -> new IllegalStateException("Merchant not found: " + merchantId));
 
@@ -145,8 +138,9 @@ public class ChatService {
                             txSignature
                     );
                     chatMessageRepository.save(message);
-                    log.info("[PAYMENT_CONFIRMED] Message SAVED to conversation id={}", conversation.getId());
-                }, () -> log.warn("[PAYMENT_CONFIRMED] NO conversation for merchantId={} email={}", merchantId, customerEmail));
+                    log.info("Payment confirmed message sent — conversationId={} amount={} tx={}",
+                            conversation.getId(), amountSol, txSignature.substring(0, 8));
+                }, () -> log.debug("No conversation found for merchantId={} — skipping chat notification", merchantId));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
