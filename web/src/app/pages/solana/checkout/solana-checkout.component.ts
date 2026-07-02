@@ -232,7 +232,7 @@ export class SolanaCheckoutComponent implements OnInit, OnDestroy {
   }
 
   private startCountdown(): void {
-    this.timeLeft = 15 * 60;
+    this.timeLeft = 5 * 60;
     this.timerSub = interval(1000).subscribe(() => {
       this.timeLeft--;
       if (this.timeLeft <= 0) {

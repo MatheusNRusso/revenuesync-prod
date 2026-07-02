@@ -51,7 +51,18 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
+  get hasConfirmedPayment(): boolean {
+    return this.messages.some(m => m.messageType === 'PAYMENT_CONFIRMED');
+  }
+
+  isRequestExpired(msg: ChatMessageResponse): boolean {
+    if (!msg.createdAt) return false;
+    const created = new Date(msg.createdAt).getTime();
+    const expiresMs = 5 * 60 * 1000; // 5 minutes, same as backend
+    return Date.now() - created > expiresMs;
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
