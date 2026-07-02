@@ -34,7 +34,7 @@ export interface ChatMessageResponse {
   content: string;
   read: boolean;
   createdAt: string;
-  messageType: 'TEXT' | 'PAYMENT_REQUEST';
+  messageType: 'TEXT' | 'PAYMENT_REQUEST' | 'PAYMENT_CONFIRMED' | 'PAYMENT_FAILED';
   paymentToken: string | null;
   paymentAmountSol: number | null;
   paymentStatus: string | null;

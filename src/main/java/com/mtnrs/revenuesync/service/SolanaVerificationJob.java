@@ -4,6 +4,7 @@ import com.mtnrs.revenuesync.domain.Merchant;
 import com.mtnrs.revenuesync.domain.SolanaPayment;
 import com.mtnrs.revenuesync.domain.enums.LeadSource;
 import com.mtnrs.revenuesync.domain.enums.PaymentStatus;
+import com.mtnrs.revenuesync.domain.enums.SolanaPaymentStatus;
 import com.mtnrs.revenuesync.repository.MerchantRepository;
 import com.mtnrs.revenuesync.repository.SolanaPaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,13 @@ public class SolanaVerificationJob {
 
         if (txSignature.isEmpty()) {
             log.trace("No confirmed tx yet for reference={}", solanaPayment.getReference());
+            return;
+        }
+
+        // Guard: duplicate on-chain payment — reference already CONFIRMED
+        if (solanaPayment.getStatus() == SolanaPaymentStatus.CONFIRMED) {
+            log.warn("Duplicate on-chain payment detected — reference={} already CONFIRMED. Ignoring tx={}",
+                    solanaPayment.getReference(), txSignature.get());
             return;
         }
 
@@ -129,7 +137,7 @@ public class SolanaVerificationJob {
                 leadService.createLead(
                         solanaPayment.getCustomerEmail(),
                         null,
-                        LeadSource.SOLANA_PAY, // reuses existing enum — add SOLANA_PAY later
+                        LeadSource.SOLANA_PAY,
                         leadJson
                 );
                 log.info("Lead created for Solana payment email={}", solanaPayment.getCustomerEmail());
@@ -196,7 +204,7 @@ public class SolanaVerificationJob {
         SolanaPayment solanaPayment = solanaPaymentRepository.findByReference(reference)
                 .orElseThrow(() -> new IllegalArgumentException("Solana payment not found"));
 
-        if (solanaPayment.getStatus() != com.mtnrs.revenuesync.domain.enums.SolanaPaymentStatus.PENDING) {
+        if (solanaPayment.getStatus() != SolanaPaymentStatus.PENDING) {
             throw new IllegalArgumentException("Only pending Solana payments can be manually confirmed");
         }
 
