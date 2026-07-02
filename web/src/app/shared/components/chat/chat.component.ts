@@ -124,8 +124,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
         this.scrollToBottom();
       },
-      error: () => {
+      error: (err) => {
         this.chatLoading = false;
+        this.newMessage = content; // restore message on error
+        const backendMsg = err?.error?.message || err?.error?.error;
+        alert(backendMsg || 'Failed to send message. Please try again.');
         this.cdr.detectChanges();
       }
     });

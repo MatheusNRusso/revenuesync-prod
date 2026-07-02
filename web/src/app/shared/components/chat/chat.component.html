@@ -29,8 +29,11 @@
         </button>
         }
         }
+        @if (!hasConfirmedPayment && !isRequestExpired(msg)) {
         <span class="payment-status">{{ msg.paymentStatus }}</span>
+        }
       </div>
+
       <span class="timestamp">{{ msg.createdAt | date:'short' }}</span>
     </div>
     } @else {
