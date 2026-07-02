@@ -34,6 +34,12 @@ public class ChatService {
                 .findByMerchantIdAndBuyerId(merchantId, buyer.getId())
                 .orElseGet(() -> conversationRepository.save(Conversation.start(merchant, buyer)));
 
+        if (!conversation.isActive()) {
+            conversation.reopen();
+            log.info("Reopened conversation id={} between merchantId={} and buyerId={}",
+                    conversation.getId(), merchantId, buyer.getId());
+        }
+
         return toConversationResponse(conversation, buyer.getId());
     }
 

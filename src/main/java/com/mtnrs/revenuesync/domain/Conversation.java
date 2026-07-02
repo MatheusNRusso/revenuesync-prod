@@ -52,6 +52,7 @@ public class Conversation {
 
     public void close()   { this.status = "CLOSED";   }
     public void archive() { this.status = "ARCHIVED"; }
+    public void reopen() { this.status = "ACTIVE"; }
 
     public boolean isActive() { return "ACTIVE".equals(this.status); }
 
