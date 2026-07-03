@@ -19,7 +19,7 @@
         <span class="payment-label">◎ Payment Request</span>
         <span class="payment-amount">{{ msg.paymentAmountSol }} SOL</span>
         @if (msg.senderId !== buyerId) {
-        @if (hasConfirmedPayment) {
+        @if (isRequestPaid(msg)) {
         <span class="payment-status paid">✅ Paid</span>
         } @else if (isRequestExpired(msg)) {
         <span class="payment-status expired">⏱ Expired — request a new payment</span>
@@ -29,7 +29,7 @@
         </button>
         }
         }
-        @if (!hasConfirmedPayment && !isRequestExpired(msg)) {
+        @if (!isRequestPaid(msg) && !isRequestExpired(msg)) {
         <span class="payment-status">{{ msg.paymentStatus }}</span>
         }
       </div>
