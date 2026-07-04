@@ -93,7 +93,7 @@ public class SolanaVerificationJob {
                 solanaPayment.getAmount(),
                 solanaPayment.getCurrency(),
                 PaymentStatus.SUCCEEDED,
-                null,
+                lead != null ? lead.getName() : null,
                 solanaPayment.getCustomerEmail(),
                 buildRawPayload(solanaPayment, txSignature.get()),
                 txSignature.get()
@@ -223,7 +223,7 @@ public class SolanaVerificationJob {
                 solanaPayment.getAmount(),
                 solanaPayment.getCurrency(),
                 PaymentStatus.SUCCEEDED,
-                null,
+                lead != null ? lead.getName() : null,
                 solanaPayment.getCustomerEmail(),
                 buildRawPayload(solanaPayment, txSignature),
                 txSignature
