@@ -254,7 +254,7 @@
                       </td>
 
                       <td class="col-customer">
-                        {{ payment.customerName || 'Unknown customer' }}
+                        {{ payment.customerName || payment.customerEmail || '-' }}
                       </td>
 
                       <td class="col-email">
