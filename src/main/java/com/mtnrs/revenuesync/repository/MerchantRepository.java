@@ -2,6 +2,8 @@ package com.mtnrs.revenuesync.repository;
 
 import com.mtnrs.revenuesync.domain.Merchant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,4 +36,7 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long> {
     List<Merchant> findByActiveTrue();
 
     boolean existsByUserId(Long userId);
+
+    @Query("SELECT m FROM Merchant m WHERE m.active = true AND (:userId IS NULL OR m.user.id <> :userId) ORDER BY m.id DESC")
+    List<Merchant> findDiscoverableMerchants(@Param("userId") Long userId);
 }

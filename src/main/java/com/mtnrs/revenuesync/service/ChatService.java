@@ -30,6 +30,11 @@ public class ChatService {
         Merchant merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Merchant not found"));
 
+        // Block self-chat: a merchant cannot start a conversation with their own service
+        if (merchant.getUser().getId().equals(buyer.getId())) {
+            throw new IllegalArgumentException("You cannot start a conversation with your own service");
+        }
+
         Conversation conversation = conversationRepository
                 .findByMerchantIdAndBuyerId(merchantId, buyer.getId())
                 .orElseGet(() -> conversationRepository.save(Conversation.start(merchant, buyer)));

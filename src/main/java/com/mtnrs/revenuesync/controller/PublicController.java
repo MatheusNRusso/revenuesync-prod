@@ -54,8 +54,12 @@ public class PublicController {
     // ── Merchants ─────────────────────────────────────────────────────────────
 
     @GetMapping("/merchants")
-    public ResponseEntity<List<Map<String, Object>>> listMerchants() {
-        var merchants = merchantRepository.findByActiveTrue()
+    public ResponseEntity<List<Map<String, Object>>> listMerchants(
+            @AuthenticationPrincipal User user
+    ) {
+
+        Long currentUserId = (user != null) ? user.getId() : null;
+        var merchants = merchantRepository.findDiscoverableMerchants(currentUserId)
                 .stream()
                 .map(m -> Map.<String, Object>of(
                         "id",          m.getId(),
@@ -67,6 +71,7 @@ public class PublicController {
                 .toList();
         return ResponseEntity.ok(merchants);
     }
+
 
     @GetMapping("/merchants/{slug}")
     public ResponseEntity<Map<String, Object>> getMerchant(@PathVariable String slug) {
@@ -88,6 +93,7 @@ public class PublicController {
                 .map(m -> {
                     var map = new java.util.HashMap<String, Object>();
                     map.put("id",          m.getId());
+                    map.put("userId",      m.getUser() != null ? m.getUser().getId() : null);
                     map.put("name",        m.getName());
                     map.put("slug",        m.getSlug()        != null ? m.getSlug()        : "");
                     map.put("description", m.getDescription() != null ? m.getDescription() : "");
@@ -95,9 +101,10 @@ public class PublicController {
                     map.put("userDisplayName",     m.getUser() != null && m.getUser().getName() != null ? m.getUser().getName() : "");
                     map.put("userGithubAvatarUrl", m.getUser() != null ? userPublicProfileRepository.findByUserId(m.getUser().getId()).map(UserPublicProfile::getGithubAvatarUrl).orElse("") : "");
                     return ResponseEntity.ok((Map<String, Object>) map);
-                    })
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @PostMapping("/pay/{slug}")
     public ResponseEntity<CreatePaymentResponse> pay(
             @PathVariable String slug,
