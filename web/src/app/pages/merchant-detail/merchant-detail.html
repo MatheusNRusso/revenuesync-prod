@@ -1,5 +1,4 @@
 <div class="merchant-detail-page">
-
   <nav class="detail-nav">
     <div class="nav-inner">
       <div class="nav-logo" (click)="goToDiscover()">
@@ -11,7 +10,6 @@
   </nav>
 
   <div class="detail-container">
-
     @if (loading) {
     <div class="state-loading">
       <span class="accent">$</span> loading merchant<span class="blink">▊</span>
@@ -26,7 +24,6 @@
     }
 
     @if (!loading && merchant) {
-
     <!-- Merchant Header -->
     <div class="merchant-header">
       <div class="service-icon">
@@ -48,15 +45,12 @@
       </div>
     </div>
 
-    <!-- Chat Toggle -->
-    <div class="chat-toggle-bar" (click)="toggleChat()">
+    <!-- Contact button — chat lives in the buyer dashboard -->
+    @if (!isOwnMerchant) {
+    <button class="chat-toggle-bar" (click)="contactMerchant()">
       <span>[ contact ]</span>
-      <span class="chat-toggle-icon">{{ chatOpen ? '▲ close' : '▼ open chat' }}</span>
-    </div>
-
-    @if (chatOpen) {
-    <app-chat [conversation]="conversation" [buyerId]="currentUserId">
-    </app-chat>
+      <span class="chat-toggle-icon">→ open chat</span>
+    </button>
     }
     }
   </div>

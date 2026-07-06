@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ChatApiService } from '../../../core/services/chat.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConversationResponse } from '../../../core/models/merchant-detail.model';
@@ -15,6 +15,7 @@ import { ChatComponent } from '../../../shared/components/chat/chat.component';
 })
 export class BuyerDashboard implements OnInit {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly chatService = inject(ChatApiService);
   private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -34,6 +35,16 @@ export class BuyerDashboard implements OnInit {
       next: (convs) => {
         this.conversations = convs;
         this.loading = false;
+
+        // Auto-select conversation if coming from Discover/merchant-detail
+        const targetId = this.route.snapshot.queryParamMap.get('conversationId');
+        if (targetId) {
+          const match = convs.find(c => c.id === Number(targetId));
+          if (match) {
+            this.selectedConversation = match;
+          }
+        }
+
         this.cdr.detectChanges();
       },
       error: () => {

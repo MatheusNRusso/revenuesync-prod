@@ -6,13 +6,12 @@ import { FormsModule } from '@angular/forms';
 import { PublicProfileService } from '../../core/services/public-profile.service';
 import { ChatApiService } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ChatComponent } from '../../shared/components/chat/chat.component';
-import { MerchantDetail, ConversationResponse } from '../../core/models/merchant-detail.model';
+import { MerchantDetail } from '../../core/models/merchant-detail.model';
 
 @Component({
   selector: 'app-merchant-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChatComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './merchant-detail.html',
   styleUrls: ['./merchant-detail.scss']
 })
@@ -20,9 +19,7 @@ export class MerchantDetailComponent implements OnInit {
   loading = true;
   error: string | null = null;
   merchant: MerchantDetail | null = null;
-  conversation: ConversationResponse | null = null;
   currentUserId: number | null = null;
-  chatOpen = false;
   isOwnMerchant = false;
 
   constructor(
@@ -34,17 +31,6 @@ export class MerchantDetailComponent implements OnInit {
     private readonly cdr: ChangeDetectorRef,
     private readonly location: Location
   ) { }
-
-  toggleChat(): void {
-    // Block merchant from chatting with themselves
-    if (this.isOwnMerchant) return;
-
-    if (!this.chatOpen && !this.conversation) {
-      // Create conversation only on first open
-      this.startChat(this.merchant!.id);
-    }
-    this.chatOpen = !this.chatOpen;
-  }
 
   ngOnInit(): void {
     const merchantId = this.route.snapshot.paramMap.get('id');
@@ -61,11 +47,8 @@ export class MerchantDetailComponent implements OnInit {
       next: (merchant) => {
         this.merchant = merchant;
         this.loading = false;
-
         // Check if current user owns this merchant
-        this.isOwnMerchant = this.currentUserId !== null &&
-                             merchant.userId === this.currentUserId;
-
+        this.isOwnMerchant = this.currentUserId !== null && merchant.userId === this.currentUserId;
         this.cdr.detectChanges();
       },
       error: () => {
@@ -76,11 +59,15 @@ export class MerchantDetailComponent implements OnInit {
     });
   }
 
-  private startChat(merchantId: number): void {
-    this.chatService.startConversation(merchantId).subscribe({
+  contactMerchant(): void {
+    if (this.isOwnMerchant || !this.merchant) return;
+
+    this.chatService.startConversation(this.merchant.id).subscribe({
       next: (conv) => {
-        this.conversation = conv;
-        this.cdr.detectChanges();
+        // Chat lives in the buyer dashboard — redirect there with the conversation
+        this.router.navigate(['/buyer/dashboard'], {
+          queryParams: { conversationId: conv.id }
+        });
       },
       error: () => {
         this.error = 'Failed to start conversation.';
