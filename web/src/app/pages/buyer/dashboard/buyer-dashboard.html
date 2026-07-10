@@ -40,6 +40,7 @@
       <button class="logout-btn" (click)="logout()">Logout</button>
     </div>
   </aside>
+
   <div class="content">
     <header class="topbar">
       <div class="topbar-title">
@@ -47,45 +48,109 @@
         <span>My Chats</span>
         <span class="meta">~/buyer · chats</span>
       </div>
+
+      <div class="topbar-right">
+      <span class="role-badge">
+        <span class="dot"></span>
+        Buyer
+      </span>
+      </div>
     </header>
+
     <main class="main">
-      @if (loading) {
-        <div class="state-box">Loading conversations...</div>
-      }
-      @if (!loading && conversations.length === 0) {
-        <div class="state-box empty">
-          <p>No conversations yet.</p>
-          <button class="primary-action" (click)="goTo('/discover')">
-            Browse Services →
-          </button>
-        </div>
-      }
-      @if (!loading && conversations.length > 0) {
-        <div class="chats-layout">
-          <div class="conversations-list">
-            @for (conv of conversations; track conv.id) {
-              <div class="conv-item"
-                [class.active]="selectedConversation?.id === conv.id"
-                (click)="selectConversation(conv)">
-                <div class="conv-name">{{ conv.merchantName }}</div>
-                <div class="conv-meta">{{ conv.buyerName }}</div>
-                @if (conv.unreadCount > 0) {
-                  <span class="unread-badge">{{ conv.unreadCount }}</span>
-                }
-              </div>
-            }
+      <div class="inbox-section">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">[ chats ]</span>
+            <h2>{{ showArchived ? 'Archived' : 'Conversations' }}</h2>
           </div>
-          <div class="conversation-chat">
-            @if (selectedConversation) {
-              @for (conv of [selectedConversation]; track conv.id) {
-                <app-chat [conversation]="conv" [buyerId]="currentUserId"></app-chat>
+
+          <div class="section-head-actions">
+            <button class="ghost-action" (click)="toggleArchivedView()">
+              {{ showArchived ? '← Chats' : '⌗ Archived' }}
+            </button>
+
+            <button class="ghost-action" (click)="goTo('/discover')">
+              ← Discover
+            </button>
+          </div>
+        </div>
+
+        @if (loading) {
+          <div class="state-box">Loading conversations...</div>
+        } @else {
+          <div class="inbox-layout">
+            <div class="conversations-list">
+              @for (conv of (showArchived ? archivedConversations : conversations); track conv.id) {
+                <div
+                  class="conv-item"
+                  [class.active]="selectedConversation?.id === conv.id"
+                  (click)="selectConversation(conv)"
+                >
+                  <div class="conv-name">{{ conv.merchantName }}</div>
+<!--                  <div class="conv-meta">{{ conv.buyerName }}</div>-->
+
+                  @if (conv.unreadCount > 0) {
+                    <span class="unread-badge">{{ conv.unreadCount }}</span>
+                  }
+
+                  @if (selectedConversation?.id === conv.id) {
+                    <div class="conv-actions">
+                      @if (showArchived) {
+                        <button
+                          class="conv-action-btn"
+                          (click)="unarchiveConversation(conv, $event)"
+                        >
+                          ↩ unarchive
+                        </button>
+                      } @else {
+                        <button
+                          class="conv-action-btn"
+                          (click)="archiveConversation(conv, $event)"
+                        >
+                          ⌗ archive
+                        </button>
+
+                        <button
+                          class="conv-action-btn danger"
+                          (click)="deleteConversation(conv, $event)"
+                        >
+                          ✕ delete
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
               }
-            } @else {
-              <div class="state-box">Select a conversation to view messages.</div>
-            }
+
+              @if ((showArchived ? archivedConversations : conversations).length === 0) {
+                <div class="state-box empty">
+                  <p>{{ showArchived ? 'No archived conversations.' : 'No conversations yet.' }}</p>
+
+                  @if (!showArchived) {
+                    <button class="primary-action" (click)="goTo('/discover')">
+                      Browse Services →
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="conversation-chat">
+              @if (selectedConversation) {
+                @for (conv of [selectedConversation]; track conv.id) {
+                  <app-chat
+                    [conversation]="conv"
+                    [buyerId]="currentUserId">
+                  </app-chat>
+                }
+              } @else {
+                <div class="state-box">Select a conversation to view messages.</div>
+              }
+            </div>
           </div>
-        </div>
-      }
+        }
+      </div>
     </main>
   </div>
 </div>

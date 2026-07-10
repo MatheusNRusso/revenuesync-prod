@@ -1492,3 +1492,39 @@ table.payments {
   padding: 0.5rem 0;
   margin-bottom: 0.5rem;
 }
+
+.conv-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.conv-action-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  background: transparent;
+  border: 1px solid rgba(45, 212, 149, 0.35);
+  color: #2dd495;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.conv-action-btn:hover { background: rgba(45, 212, 149, 0.1); }
+.conv-action-btn.danger { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; }
+.conv-action-btn.danger:hover { background: rgba(239, 68, 68, 0.1); }
+
+.merchant-email-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.email-toggle-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(45, 212, 149, 0.3);
+  color: #2dd495;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.email-toggle-btn:hover { background: rgba(45, 212, 149, 0.1); }

@@ -44,6 +44,8 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   visibleWalletMerchantIds = new Set<number>();
   copiedWalletMerchantId: number | null = null;
 
+  visibleEmailMerchantIds = new Set<number>();
+
   merchantForm: CreateMerchantProfileRequest = this.createEmptyMerchantForm();
 
   loading = true;
@@ -61,6 +63,9 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   conversations: ConversationResponse[] = [];
   selectedConversation: ConversationResponse | null = null;
   conversationsLoading = false;
+
+  showArchived = false;
+  archivedConversations: ConversationResponse[] = [];
   currentUserId: number | null = null;
 
   error: string | null = null;
@@ -308,6 +313,29 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     return `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`;
   }
 
+  toggleEmailVisibility(merchantId: number, event?: Event): void {
+    event?.stopPropagation();
+    if (this.visibleEmailMerchantIds.has(merchantId)) {
+      this.visibleEmailMerchantIds.delete(merchantId);
+    } else {
+      this.visibleEmailMerchantIds.add(merchantId);
+    }
+    this.cdr.detectChanges();
+  }
+
+  isEmailVisible(merchantId: number): boolean {
+    return this.visibleEmailMerchantIds.has(merchantId);
+  }
+
+  formatEmail(email: string | null | undefined, merchantId: number): string {
+    if (!email) return 'No email';
+    if (this.isEmailVisible(merchantId)) return email;
+    const [user, domain] = email.split('@');
+    if (!domain) return email;
+    const maskedUser = user.length > 2 ? `${user.slice(0, 2)}***` : `${user}***`;
+    return `${maskedUser}@${domain}`;
+  }
+
   copyWallet(walletAddress: string | null | undefined, merchantId: number, event?: Event): void {
     event?.stopPropagation();
     if (!walletAddress) return;
@@ -377,6 +405,36 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     this.selectedConversation = null;
   }
 
+  toggleArchivedView(): void {
+    this.showArchived = !this.showArchived;
+    this.selectedConversation = null;
+    if (this.showArchived) this.loadArchivedConversations();
+    this.cdr.detectChanges();
+  }
+
+  loadArchivedConversations(): void {
+    this.chatService.getArchivedConversations().subscribe({
+      next: (convs) => {
+        this.archivedConversations = convs.filter(c => c.messageCount > 0);
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
+  unarchiveConversation(conv: ConversationResponse, event?: Event): void {
+    event?.stopPropagation();
+    this.chatService.unarchiveConversation(conv.id).subscribe({
+      next: () => {
+        this.archivedConversations = this.archivedConversations.filter(c => c.id !== conv.id);
+        if (this.selectedConversation?.id === conv.id) this.selectedConversation = null;
+        this.loadConversations();
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
   loadConversations(): void {
     this.conversationsLoading = true;
     this.chatService.getMyConversations().subscribe({
@@ -393,7 +451,8 @@ export class MerchantDashboard implements OnInit, OnDestroy {
   }
 
   selectConversation(conv: ConversationResponse): void {
-    this.selectedConversation = conv;
+    this.selectedConversation =
+      this.selectedConversation?.id === conv.id ? null : conv;
     this.cdr.detectChanges();
   }
 
@@ -401,17 +460,32 @@ export class MerchantDashboard implements OnInit, OnDestroy {
     return this.conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
   }
 
-  closeConversation(conv: ConversationResponse, event: Event): void {
-    event.stopPropagation();
-    if (!confirm(`Close conversation with ${conv.buyerName}?`)) return;
-    this.chatService.closeConversation(conv.id).subscribe({
+  archiveConversation(conv: ConversationResponse, event?: Event): void {
+    event?.stopPropagation();
+    this.chatService.archiveConversation(conv.id).subscribe({
       next: () => {
         this.conversations = this.conversations.filter(c => c.id !== conv.id);
         if (this.selectedConversation?.id === conv.id) this.selectedConversation = null;
         this.cdr.detectChanges();
       },
       error: () => {
-        this.error = 'Failed to close conversation.';
+        this.error = 'Failed to archive conversation.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  deleteConversation(conv: ConversationResponse, event?: Event): void {
+    event?.stopPropagation();
+    if (!confirm(`Delete conversation with ${conv.buyerName}?`)) return;
+    this.chatService.deleteConversation(conv.id).subscribe({
+      next: () => {
+        this.conversations = this.conversations.filter(c => c.id !== conv.id);
+        if (this.selectedConversation?.id === conv.id) this.selectedConversation = null;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'Failed to delete conversation.';
         this.cdr.detectChanges();
       }
     });

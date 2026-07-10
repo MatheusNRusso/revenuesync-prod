@@ -22,6 +22,9 @@ export class BuyerDashboard implements OnInit {
 
   conversations: ConversationResponse[] = [];
   selectedConversation: ConversationResponse | null = null;
+
+  showArchived = false;
+  archivedConversations: ConversationResponse[] = [];
   currentUserId: number | null = null;
   loading = true;
 
@@ -54,10 +57,67 @@ export class BuyerDashboard implements OnInit {
     });
   }
 
-  selectConversation(conv: ConversationResponse): void {
-    this.selectedConversation = conv;
+  toggleArchivedView(): void {
+    this.showArchived = !this.showArchived;
+    this.selectedConversation = null;
+    if (this.showArchived) this.loadArchivedConversations();
     this.cdr.detectChanges();
   }
+
+  loadArchivedConversations(): void {
+    this.chatService.getArchivedConversations().subscribe({
+      next: (convs) => {
+        this.archivedConversations = convs.filter(c => c.messageCount > 0);
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
+  unarchiveConversation(conv: ConversationResponse, event?: Event): void {
+    event?.stopPropagation();
+    this.chatService.unarchiveConversation(conv.id).subscribe({
+      next: () => {
+        this.archivedConversations = this.archivedConversations.filter(c => c.id !== conv.id);
+        if (this.selectedConversation?.id === conv.id) this.selectedConversation = null;
+        this.loadConversations();
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
+  selectConversation(conv: ConversationResponse): void {
+    this.selectedConversation =
+      this.selectedConversation?.id === conv.id ? null : conv;
+    this.cdr.detectChanges();
+  }
+
+  archiveConversation(conv: ConversationResponse, event?: Event): void {
+    event?.stopPropagation();
+    this.chatService.archiveConversation(conv.id).subscribe({
+      next: () => {
+        this.conversations = this.conversations.filter(c => c.id !== conv.id);
+        if (this.selectedConversation?.id === conv.id) this.selectedConversation = null;
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
+  deleteConversation(conv: ConversationResponse, event?: Event): void {
+    event?.stopPropagation();
+    if (!confirm(`Delete conversation with ${conv.merchantName}?`)) return;
+    this.chatService.deleteConversation(conv.id).subscribe({
+      next: () => {
+        this.conversations = this.conversations.filter(c => c.id !== conv.id);
+        if (this.selectedConversation?.id === conv.id) this.selectedConversation = null;
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
+    });
+  }
+
 
   goTo(path: string): void {
     this.router.navigate([path]);

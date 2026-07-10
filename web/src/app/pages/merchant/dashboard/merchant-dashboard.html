@@ -124,54 +124,67 @@
 
     <main class="main">
       @if (activeSection === 'inbox') {
-      <div class="inbox-section">
-        <div class="section-head">
-          <div>
-            <span class="section-kicker">[ inbox ]</span>
-            <h2>Conversations</h2>
-          </div>
-          <button class="ghost-action" (click)="showDashboard()">← Back to Dashboard</button>
-        </div>
-
-        @if (conversationsLoading) {
-        <div class="state-box">Loading conversations...</div>
-        }
-
-        @if (!conversationsLoading && conversations.length === 0) {
-        <div class="state-box">No conversations yet.</div>
-        }
-
-        <div class="inbox-layout">
-          <div class="conversations-list">
-            @for (conv of conversations; track conv.id) {
-            <div class="conv-item" [class.active]="selectedConversation?.id === conv.id"
-              (click)="selectConversation(conv)">
-              <div class="conv-name">{{ conv.buyerName }}</div>
-              <div class="conv-meta">{{ conv.merchantName }}</div>
-              @if (conv.unreadCount > 0) {
-              <span class="unread-badge">{{ conv.unreadCount }}</span>
-              }
-              <button class="conv-close" (click)="closeConversation(conv, $event)" title="Close conversation">✕</button>
+        <div class="inbox-section">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">[ inbox ]</span>
+              <h2>{{ showArchived ? 'Archived' : 'Conversations' }}</h2>
             </div>
-            }
-          </div>
-
-          <div class="conversation-chat">
-            @if (selectedConversation) {
-            <div class="chat-actions">
-              <button class="primary-action small" (click)="openPaymentModal()">
-                ◎ Request Payment
+            <div class="section-head-actions">
+              <button class="ghost-action" (click)="toggleArchivedView()">
+                {{ showArchived ? '← Inbox' : '⌗ Archived' }}
               </button>
+              <button class="ghost-action" (click)="showDashboard()">← Back to Dashboard</button>
             </div>
-            @for (conv of [selectedConversation]; track conv.id) {
-            <app-chat [conversation]="conv" [buyerId]="currentUserId">
-            </app-chat>
-            }
-            } @else {
-            <div class="state-box">Select a conversation to start chatting.</div>
-            }
           </div>
-        </div>
+          @if (conversationsLoading) {
+            <div class="state-box">Loading conversations...</div>
+          }
+
+          <div class="inbox-layout">
+            <div class="conversations-list">
+              @for (conv of (showArchived ? archivedConversations : conversations); track conv.id) {
+                <div class="conv-item" [class.active]="selectedConversation?.id === conv.id"
+                     (click)="selectConversation(conv)">
+                  <div class="conv-name">{{ conv.buyerName }}</div>
+                  <div class="conv-meta">{{ conv.merchantName }}</div>
+                  @if (conv.unreadCount > 0) {
+                    <span class="unread-badge">{{ conv.unreadCount }}</span>
+                  }
+                  @if (selectedConversation?.id === conv.id) {
+                    <div class="conv-actions">
+                      @if (showArchived) {
+                        <button class="conv-action-btn" (click)="unarchiveConversation(conv, $event)">↩ unarchive</button>
+                      } @else {
+                        <button class="conv-action-btn" (click)="archiveConversation(conv, $event)">⌗ archive</button>
+                        <button class="conv-action-btn danger" (click)="deleteConversation(conv, $event)">✕ delete</button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+              @if ((showArchived ? archivedConversations : conversations).length === 0) {
+                <div class="state-box">{{ showArchived ? 'No archived conversations.' : 'No conversations yet.' }}</div>
+              }
+            </div>
+
+            <div class="conversation-chat">
+              @if (selectedConversation) {
+                @if (!showArchived) {
+                  <div class="chat-actions">
+                    <button class="primary-action small" (click)="openPaymentModal()">
+                      ◎ Request Payment
+                    </button>
+                  </div>
+                }
+                @for (conv of [selectedConversation]; track conv.id) {
+                  <app-chat [conversation]="conv" [buyerId]="currentUserId"></app-chat>
+                }
+              } @else {
+                <div class="state-box">Select a conversation to start chatting.</div>
+              }
+            </div>
+          </div>
 
         @if (showPaymentModal) {
         <div class="modal-overlay" (click)="closePaymentModal()">
@@ -310,7 +323,13 @@
             <div class="merchant-card-top">
               <div>
                 <h3>{{ merchant.name }}</h3>
-                <p>{{ merchant.email }}</p>
+                <p class="merchant-email-row">
+                  {{ formatEmail(merchant.email, merchant.id) }}
+                  <button class="email-toggle-btn" type="button"
+                          (click)="toggleEmailVisibility(merchant.id, $event)">
+                    {{ isEmailVisible(merchant.id) ? 'Hide' : 'Show' }}
+                  </button>
+                </p>
               </div>
 
               <span class="status-pill succeeded">

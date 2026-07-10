@@ -33,8 +33,20 @@ export class ChatApiService {
     return this.http.put<void>(`${this.baseUrl}/${conversationId}/read`, {});
   }
 
-  closeConversation(conversationId: number): Observable<void> {
+  deleteConversation(conversationId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${conversationId}`);
+  }
+
+  archiveConversation(conversationId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${conversationId}/archive`, {});
+  }
+
+  unarchiveConversation(conversationId: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${conversationId}/unarchive`, {});
+  }
+
+  getArchivedConversations(): Observable<ConversationResponse[]> {
+    return this.http.get<ConversationResponse[]>(`${this.baseUrl}/archived`);
   }
 
   sendPaymentRequest(conversationId: number, amountSol: number): Observable<ChatMessageResponse> {
