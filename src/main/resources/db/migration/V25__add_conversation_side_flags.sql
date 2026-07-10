@@ -1,0 +1,5 @@
+ALTER TABLE conversations
+    ADD COLUMN archived_by_buyer    BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN archived_by_merchant BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN deleted_by_buyer     BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN deleted_by_merchant  BOOLEAN NOT NULL DEFAULT FALSE;

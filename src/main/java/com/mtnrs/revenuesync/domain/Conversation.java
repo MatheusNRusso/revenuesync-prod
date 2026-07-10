@@ -29,6 +29,18 @@ public class Conversation {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @Column(name = "archived_by_buyer", nullable = false)
+    private boolean archivedByBuyer;
+
+    @Column(name = "archived_by_merchant", nullable = false)
+    private boolean archivedByMerchant;
+
+    @Column(name = "deleted_by_buyer", nullable = false)
+    private boolean deletedByBuyer;
+
+    @Column(name = "deleted_by_merchant", nullable = false)
+    private boolean deletedByMerchant;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -61,6 +73,44 @@ public class Conversation {
         Long uid = user.getId();
         return uid.equals(buyer.getId())
                 || (merchant.getUser() != null && uid.equals(merchant.getUser().getId()));
+    }
+
+    // ── Side-specific organization (WhatsApp model) ─────────────────────────
+
+    private boolean isMerchantSide(User user) {
+        return merchant.getUser() != null
+                && user.getId().equals(merchant.getUser().getId());
+    }
+
+    public void archiveFor(User user) {
+        if (isMerchantSide(user)) this.archivedByMerchant = true;
+        else                      this.archivedByBuyer = true;
+    }
+
+    public void unarchiveFor(User user) {
+        if (isMerchantSide(user)) this.archivedByMerchant = false;
+        else                      this.archivedByBuyer = false;
+    }
+
+    public void deleteFor(User user) {
+        if (isMerchantSide(user)) this.deletedByMerchant = true;
+        else                      this.deletedByBuyer = true;
+    }
+
+    /** New message resurrects the conversation for both sides (WhatsApp behavior). */
+    public void resurrectOnNewMessage() {
+        this.deletedByBuyer = false;
+        this.deletedByMerchant = false;
+        this.archivedByBuyer = false;
+        this.archivedByMerchant = false;
+    }
+
+    public boolean isVisibleFor(User user) {
+        return isMerchantSide(user) ? !deletedByMerchant : !deletedByBuyer;
+    }
+
+    public boolean isArchivedFor(User user) {
+        return isMerchantSide(user) ? archivedByMerchant : archivedByBuyer;
     }
 
     // ── JPA hooks ─────────────────────────────────────────────────────────────

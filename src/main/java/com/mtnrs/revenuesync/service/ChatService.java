@@ -29,38 +29,49 @@ public class ChatService {
     public ConversationResponse startOrResumeConversation(Long merchantId, User buyer) {
         Merchant merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new IllegalArgumentException("Merchant not found"));
-
         // Block self-chat: a merchant cannot start a conversation with their own service
         if (merchant.getUser().getId().equals(buyer.getId())) {
             throw new IllegalArgumentException("You cannot start a conversation with your own service");
         }
-
         Conversation conversation = conversationRepository
                 .findByMerchantIdAndBuyerId(merchantId, buyer.getId())
                 .orElseGet(() -> conversationRepository.save(Conversation.start(merchant, buyer)));
-
         if (!conversation.isActive()) {
             conversation.reopen();
             log.info("Reopened conversation id={} between merchantId={} and buyerId={}",
                     conversation.getId(), merchantId, buyer.getId());
         }
-
+        // Clear deleted/archived flags — recontacting always resurfaces the conversation
+        conversation.resurrectOnNewMessage();
         return toConversationResponse(conversation, buyer.getId());
     }
 
     @Transactional(readOnly = true)
     public List<ConversationResponse> getConversationsForUser(User user) {
-        List<Conversation> asBuyer = conversationRepository
-                .findByBuyerIdOrderByUpdatedAtDesc(user.getId());
-
-        List<Conversation> asMerchantOwner = conversationRepository
-                .findByMerchantUserIdOrderByUpdatedAtDesc(user.getId());
-
-        return java.util.stream.Stream.concat(asBuyer.stream(), asMerchantOwner.stream())
-                .distinct()
-                .sorted((a, b) -> b.getUpdatedAt().compareTo(a.getUpdatedAt()))
+        return loadConversationsFor(user)
+                .filter(c -> c.isVisibleFor(user))      // hide the ones I deleted
+                .filter(c -> !c.isArchivedFor(user))    // hide the ones I archived
                 .map(c -> toConversationResponse(c, user.getId()))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConversationResponse> getArchivedConversationsForUser(User user) {
+        return loadConversationsFor(user)
+                .filter(c -> c.isVisibleFor(user))      // hide the ones I deleted
+                .filter(c -> c.isArchivedFor(user))     // only the ones I archived
+                .map(c -> toConversationResponse(c, user.getId()))
+                .toList();
+    }
+
+    private java.util.stream.Stream<Conversation> loadConversationsFor(User user) {
+        List<Conversation> asBuyer = conversationRepository
+                .findByBuyerIdOrderByUpdatedAtDesc(user.getId());
+        List<Conversation> asMerchantOwner = conversationRepository
+                .findByMerchantUserIdOrderByUpdatedAtDesc(user.getId());
+        return java.util.stream.Stream.concat(asBuyer.stream(), asMerchantOwner.stream())
+                .distinct()
+                .sorted((a, b) -> b.getUpdatedAt().compareTo(a.getUpdatedAt()));
     }
 
     @Transactional(readOnly = true)
@@ -75,14 +86,12 @@ public class ChatService {
                 .toList();
     }
 
-    @Transactional
     public ChatMessageResponse sendMessage(Long conversationId, User sender, String content) {
         Conversation conversation = findConversation(conversationId);
         validateAccess(conversation, sender);
-
+        conversation.resurrectOnNewMessage();   // a new message brings it back for both sides
         ChatMessage message = ChatMessage.create(conversation, sender, content);
         chatMessageRepository.save(message);
-
         return toMessageResponse(message);
     }
 
@@ -152,6 +161,27 @@ public class ChatService {
                     log.info("Payment confirmed message sent — conversationId={} amount={} tx={}",
                             conversation.getId(), amountSol, txSignature.substring(0, 8));
                 }, () -> log.debug("No conversation found for merchantId={} — skipping chat notification", merchantId));
+    }
+
+    @Transactional
+    public void archiveConversation(Long conversationId, User user) {
+        Conversation conversation = findConversation(conversationId);
+        validateAccess(conversation, user);
+        conversation.archiveFor(user);
+    }
+
+    @Transactional
+    public void unarchiveConversation(Long conversationId, User user) {
+        Conversation conversation = findConversation(conversationId);
+        validateAccess(conversation, user);
+        conversation.unarchiveFor(user);
+    }
+
+    @Transactional
+    public void deleteConversation(Long conversationId, User user) {
+        Conversation conversation = findConversation(conversationId);
+        validateAccess(conversation, user);
+        conversation.deleteFor(user);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

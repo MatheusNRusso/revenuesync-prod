@@ -65,11 +65,34 @@ public class ChatController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{conversationId}")
-    public ResponseEntity<Void> closeConversation(
+    @GetMapping("/archived")
+    public ResponseEntity<List<ConversationResponse>> getArchivedConversations(
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(chatService.getArchivedConversationsForUser(user));
+    }
+
+    @PostMapping("/{conversationId}/archive")
+    public ResponseEntity<Void> archiveConversation(
             @PathVariable Long conversationId,
             @AuthenticationPrincipal User user) {
-        chatService.closeConversation(conversationId, user);
+        chatService.archiveConversation(conversationId, user);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{conversationId}/unarchive")
+    public ResponseEntity<Void> unarchiveConversation(
+            @PathVariable Long conversationId,
+            @AuthenticationPrincipal User user) {
+        chatService.unarchiveConversation(conversationId, user);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{conversationId}")
+    public ResponseEntity<Void> deleteConversation(
+            @PathVariable Long conversationId,
+            @AuthenticationPrincipal User user) {
+        chatService.deleteConversation(conversationId, user);
+        return ResponseEntity.noContent().build();
+    }
+
 }
