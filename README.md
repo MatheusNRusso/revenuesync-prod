@@ -252,6 +252,7 @@ Implemented:
 * Admin operations panel
 * Mobile usability improvements
 * Production-ready environment configuration
+* Automated test suite (JwtService, ChatService)
 
 In progress:
 
