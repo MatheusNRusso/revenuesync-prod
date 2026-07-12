@@ -19,7 +19,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   error: string | null = null;
   showPassword = false;
 
-  comingSoonMsg: string | null = null;
 
   /**
    * Stores the post-login redirect path read from the ?redirect= query param.
@@ -28,10 +27,6 @@ export class LoginComponent implements OnInit, OnDestroy {
    */
   private redirectUrl: string | null = null;
 
-  comingSoon(): void {
-    this.comingSoonMsg = 'Social login coming soon. Please use email and password.';
-    setTimeout(() => this.comingSoonMsg = null, 3000);
-  }
 
   slides = [
     {

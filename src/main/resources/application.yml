@@ -52,3 +52,9 @@ ml:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:4200}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

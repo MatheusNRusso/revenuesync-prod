@@ -90,7 +90,7 @@ public class PaymentController {
                     content = @Content)
     })
     public ResponseEntity<PaymentResponseDto> getByExternalId(
-            @Parameter(description = "Stripe session ID (cs_test_xxx)", required = true)
+            @Parameter(description = "Payment external ID (e.g. solana:<tx_signature>)", required = true)
             @PathVariable String externalId) {
 
         log.info("REST request to get payment by externalId: {}", externalId);
