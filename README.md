@@ -15,7 +15,7 @@ RevenueSync evolved from a Stripe attribution prototype into a crypto-native mar
 - Public merchant discovery
 - Buyer payment history
 - Admin operations dashboard
-- Conversion tracking
+- Conversion pipeline (mock providers)
 - Payment synchronization
 - Responsive SaaS-style frontend
 
@@ -45,7 +45,7 @@ Merchants can:
 - Generate Solana Pay checkout flows
 - Track payments
 - Access buyer history
-- Monitor conversions
+- Monitor conversion events
 
 ---
 
@@ -61,6 +61,20 @@ Features:
 - Transaction synchronization
 - Merchant wallet support
 - Mainnet-ready architecture
+
+---
+
+## Conversion Pipeline
+
+Every confirmed payment dispatches conversion events through decoupled clients:
+
+- Meta Conversions API (CAPI)
+- Google Ads
+- Pipedrive CRM
+
+Each dispatch runs in an isolated try/catch, so a failure in one provider never blocks payment confirmation or the other integrations. Full request/response payloads are persisted for auditability.
+
+> **Note:** the clients currently point to mock endpoints. Switching to the live provider APIs is a matter of configuring credentials and the base URL — the pipeline, DTOs and persistence layer are already in place.
 
 ---
 
@@ -81,7 +95,7 @@ Administrative dashboard with:
 
 - Payment monitoring
 - Merchant management
-- Conversion tracking
+- Conversion pipeline (mock providers)
 - Lead monitoring
 - Activity feeds
 - Operational analytics
@@ -258,6 +272,7 @@ In progress:
 
 * Production deployment
 * Live RPC optimizations
+* Conversion tracking with live providers (Meta CAPI, Google Ads, Pipedrive)
 * Multi-token support
 * Real-time pricing feeds
 * Enhanced analytics
