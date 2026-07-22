@@ -24,6 +24,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.List;
 
 @Configuration
@@ -39,15 +41,15 @@ public class SecurityConfig {
     private RateLimitFilter rateLimitFilter;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
-                          UserRepository userRepository,
-                          GitHubOAuthService gitHubOAuthService,
-                          PasswordEncoder passwordEncoder,
-                          @org.springframework.beans.factory.annotation.Value("${app.frontend-url}") String frontendUrl) {
-        this.jwtAuthFilter  = jwtAuthFilter;
+            UserRepository userRepository,
+            GitHubOAuthService gitHubOAuthService,
+            PasswordEncoder passwordEncoder,
+            @org.springframework.beans.factory.annotation.Value("${app.frontend-url}") String frontendUrl) {
+        this.jwtAuthFilter = jwtAuthFilter;
         this.userRepository = userRepository;
         this.gitHubOAuthService = gitHubOAuthService;
         this.passwordEncoder = passwordEncoder;
-        this.frontendUrl    = frontendUrl;
+        this.frontendUrl = frontendUrl;
     }
 
     @Bean
@@ -56,59 +58,59 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .headers(headers -> headers
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'")
-                        )
-                        .frameOptions(frame -> frame.deny())
-                        .contentTypeOptions(content -> {})
-                        .httpStrictTransportSecurity(hsts -> hsts
-                                .includeSubDomains(true)
-                                .maxAgeInSeconds(31536000)
-                        )
-                        .referrerPolicy(referrer -> referrer
-                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-                        )
-                        .addHeaderWriter(new PermissionsPolicyHeaderWriter("camera=(), microphone=(), geolocation=()"))
+                .contentSecurityPolicy(csp -> csp
+                .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'")
+                )
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(content -> {
+                })
+                .httpStrictTransportSecurity(hsts -> hsts
+                .includeSubDomains(true)
+                .maxAgeInSeconds(31536000)
+                )
+                .referrerPolicy(referrer -> referrer
+                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                )
+                .addHeaderWriter(new PermissionsPolicyHeaderWriter("camera=(), microphone=(), geolocation=()"))
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
-                        .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/auth/validate").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/public/merchants/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/public/profiles/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/solana/status/**").permitAll()
-                        .requestMatchers("/api/solana/transaction-request/**").permitAll()
-                        .requestMatchers("/api/solana/payment/**").authenticated()
-                        .requestMatchers("/api/payments/**", "/api/conversions/**").hasRole("ADMIN")
-                        .requestMatchers("/api/me/**").authenticated()
-                        .requestMatchers("/api/discover/**", "/api/public/pay/**").authenticated()
-                        .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/api/chats/**").authenticated()
-                        .anyRequest().authenticated())
+                .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
+                .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/auth/validate").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/public/merchants/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/public/profiles/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/solana/status/**").permitAll()
+                .requestMatchers("/api/solana/transaction-request/**").permitAll()
+                .requestMatchers("/api/solana/payment/**").authenticated()
+                .requestMatchers("/api/payments/**", "/api/conversions/**").hasRole("ADMIN")
+                .requestMatchers("/api/me/**").authenticated()
+                .requestMatchers("/api/discover/**", "/api/public/pay/**").authenticated()
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/api/chats/**").authenticated()
+                .anyRequest().authenticated())
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(auth -> auth
-                                .baseUri("/oauth2/authorization")
-                        )
-                        .successHandler((request, response, authentication) -> {
-                            String jwt = gitHubOAuthService.handleOAuthSuccess(authentication);
-                            String redirectUrl = frontendUrl + "/oauth2/callback?token=" + jwt;
-                            response.setContentType("text/html");
-                            response.getWriter().write(
-                                    "<html><body><script>window.location.href='" + redirectUrl + "'</script></body></html>"
-                            );
-                        })
-                        .failureHandler((request, response, exception) -> {
-                            response.sendRedirect(frontendUrl + "/login?error=oauth2");
-                        })
+                .authorizationEndpoint(auth -> auth
+                .baseUri("/oauth2/authorization")
+                )
+                .successHandler((request, response, authentication) -> {
+                    String jwt = gitHubOAuthService.handleOAuthSuccess(authentication);
+                    // JWT in the URL fragment: never sent to server, never logged, no Referer leak.
+                    // Raw Location header (not sendRedirect) so '#' is not percent-encoded.
+                    response.setStatus(HttpServletResponse.SC_FOUND);
+                    response.setHeader("Location", frontendUrl + "/oauth2/callback#token=" + jwt);
+                })
+                .failureHandler((request, response, exception) -> {
+                    response.sendRedirect(frontendUrl + "/login?error=oauth2");
+                })
                 )
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                        })
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -133,8 +135,8 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         var provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(email ->
-                userRepository.findByEmail(email)
+        provider.setUserDetailsService(email
+                -> userRepository.findByEmail(email)
                         .orElseThrow(() -> new UsernameNotFoundException("User not found"))
         );
         provider.setPasswordEncoder(passwordEncoder);
