@@ -20,20 +20,38 @@ export class OAuth2CallbackComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      const token = params['token'];
-      const error = params['error'];
+    // JWT arrives in the URL fragment (#token=...): never sent to the server,
+    // never logged, never leaked via the Referer header.
+    const token = this.extractTokenFromFragment();
+    this.clearFragment(); // strip it from the address bar / history
 
-      if (error) {
+    if (token) {
+      this.authService.saveTokenAndRedirect(token);
+      return;
+    }
+
+    // Defensive fallback for the current backend (query param) and error flows.
+    this.route.queryParams.subscribe(params => {
+      if (params['error']) {
         this.router.navigate(['/login'], { queryParams: { error: 'oauth2' } });
         return;
       }
-
-      if (token) {
-        this.authService.saveTokenAndRedirect(token);
-      } else {
-        this.router.navigate(['/login']);
+      if (params['token']) {
+        this.authService.saveTokenAndRedirect(params['token']);
+        return;
       }
+      this.router.navigate(['/login']);
     });
+  }
+
+  private extractTokenFromFragment(): string | null {
+    const hash = window.location.hash.replace(/^#/, '');
+    return hash ? new URLSearchParams(hash).get('token') : null;
+  }
+
+  private clearFragment(): void {
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
   }
 }
