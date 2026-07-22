@@ -143,6 +143,14 @@ public class User implements UserDetails {
         return true;
     }
 
+    /**
+     * Updates the account email. Expects an already-validated value
+     * (e.g. a verified email returned by the OAuth provider).
+     */
+    public void updateEmail(String newEmail) {
+        this.email = newEmail.trim().toLowerCase();
+    }
+
     // ── JPA hooks ─────────────────────────────────────────────────────────────
 
     @PrePersist

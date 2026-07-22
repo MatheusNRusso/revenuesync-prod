@@ -53,8 +53,42 @@ ml:
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:4200}
 
+  auth:
+    allow-direct-registration: false
+
+  rate-limit:
+    enabled: true
+    public:
+      capacity: 100
+      refill-tokens: 100
+      refill-period: 1m
+    auth:
+      capacity: 5
+      refill-tokens: 5
+      refill-period: 1m
+
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+    info:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: RevenueSync
+    version: 1.0.0
+    description: Freelancer payment platform with Solana integration
