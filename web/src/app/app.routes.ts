@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { registrationGuard } from './core/guards/registration.guard';
 import { OAuth2CallbackComponent } from './pages/oauth2/callback/oauth2-callback.component';
 import { PayComponent } from './pages/pay/pay.component';
 
@@ -18,7 +19,8 @@ export const routes: Routes = [
   {
     path: 'register',
     loadComponent: () =>
-      import('./pages/register/register').then(m => m.RegisterComponent)
+      import('./pages/register/register').then(m => m.RegisterComponent),
+    canMatch: [registrationGuard]
   },
 
   // ── Onboarding — new users choose buyer or merchant intent ─────────────────
