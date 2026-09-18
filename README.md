@@ -89,41 +89,14 @@ Most crypto payment demos stop at "generate a QR code, get paid." RevenueSync go
 
 ## GitHub integration
 
-RevenueSync is built for developers, so GitHub is its **primary identity provider and trust anchor** — not a decorative "Sign in with GitHub" button. A user's identity, public profile, and login email are all resolved from the GitHub API. Builders authenticate with GitHub and get a profile derived from their real GitHub presence; the platform never asks them to re-type data GitHub already verifies.
+RevenueSync is built for developers, so GitHub is its **primary identity provider and trust anchor**.
 
-### OAuth application & scopes
+- **Login via GitHub OAuth** (Authorization Code flow, `user:email` scope)
+- **Email/password registration disabled in production** (`POST /auth/register` returns `410 Gone`) — can be re-enabled per environment via `app.auth.allow-direct-registration` for local development
+- **Identity and verified email resolved from the GitHub API** — no self-declared data, no credential stuffing surface
+- **Legacy accounts reconciled** on next login (matched by stable GitHub username)
 
-Authentication uses a **GitHub OAuth App** (Authorization Code flow) requesting the **minimum scope** required — principle of least privilege:
-
-- `user:email` — read the user's email addresses with visibility and verification status via `GET /user/emails`.
-
-No write scopes are requested. RevenueSync never creates repositories, opens issues, or modifies any resource on the user's behalf.
-
-### GitHub API endpoints consumed
-
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /user` | Display name, avatar, public repository count, follower count, and the stable `login` used as the identity key. |
-| `GET /user/emails` | Resolve a **verified** email (primary + verified, falling back to any verified address). |
-
-### GitHub-first identity
-
-- **Accounts are created exclusively through GitHub OAuth.** Direct email/password registration is disabled in production (`POST /auth/register` returns `410 Gone`), removing the attack surface of open registration and credential stuffing. It can be re-enabled per environment via `app.auth.allow-direct-registration` (used only in local development, where the OAuth flow cannot complete).
-- **The login email is verified by GitHub, not self-declared.** On every login the backend reads `GET /user/emails` and selects a verified address through a bounded, fault-tolerant fallback chain — an upstream failure degrades gracefully instead of breaking login.
-- **Legacy accounts are reconciled.** Accounts created before this model that still carry a synthetic placeholder email are updated in place to the real verified address on the next login, matched by the stable GitHub username so no duplicate account is ever created.
-- **Password login is preserved** for existing accounts; no user is locked out.
-
-### Secure token handoff
-
-After a successful OAuth login the backend hands the session token to the frontend via a `302` redirect carrying the JWT in the **URL fragment** (`#token=...`). The fragment is never sent to the server, never written to access logs, and never leaked through the `Referer` header; the frontend reads it and strips it from the address bar immediately. Responses are protected by a strict **Content Security Policy** (`script-src 'self'`).
-
-### Privacy
-
-The verified email is used **only for account login** and is never exposed on the public profile, which shows only GitHub-derived data the user already makes public (avatar, repository count, followers).
-
-> The full rationale lives in [`docs/adr/0002-github-first-identity.md`](docs/adr/0002-github-first-identity.md).
-
----
+The full rationale, security considerations (secure token handoff via URL fragment, CSP, fallback chain for email resolution), and privacy model are documented in [`docs/adr/0002-github-first-identity.md`](docs/adr/0002-github-first-identity.md).
 
 ## Architecture
 
@@ -228,6 +201,10 @@ revenuesync/
 # 1. Start Postgres
 docker start revenue-postgres   # or docker run ... postgres:15
 
+> **Port conflict?** If `revenue-postgres` was recreated on port 5434 (because another
+> project owns 5433), set `DB_PORT=5434` in your `.env` — the application will pick
+> it up automatically via `spring.datasource.url`.
+
 # 2. Backend — copy .env.example to .env and fill in the values
 set -a && source .env && set +a
 SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
@@ -248,6 +225,7 @@ Flyway applies all migrations automatically on startup. An admin user is seeded 
 
 ## Roadmap
 
+- [ ] Mercado Pago Point integration (physical card payments via certified terminal API)
 - [ ] Multi-negotiation model per merchant (separate deal threads instead of one lifelong conversation)
 - [ ] Deal funnel states (negotiating / completed — won / lost)
 - [ ] Block user
